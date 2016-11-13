@@ -72,14 +72,10 @@ class ResourceService(Service):
     upon request.
 
     """
-    def __init__(self, shard, contest_id=None):
-        """If contest_id is not None, we assume the user wants the
-        autorestart feature.
-
-        """
+    def __init__(self, shard, autorestart=False):
         Service.__init__(self, shard)
 
-        self.contest_id = contest_id
+        self.autorestart = autorestart
 
         # _local_store is a dictionary indexed by time in int(epoch)
         self._local_store = []
@@ -90,8 +86,7 @@ class ResourceService(Service):
         # Sorted list of ServiceCoord running in the same machine
         self._local_services = self._find_local_services()
         # Dict service with bool to mark if we will restart them.
-        self._will_restart = dict((service,
-                                   None if self.contest_id is None else True)
+        self._will_restart = dict((service, self.autorestart)
                                   for service in self._local_services)
         # Found process associate to the ServiceCoord.
         self._procs = dict((service, None)
@@ -103,7 +98,7 @@ class ResourceService(Service):
         self._store_resources(store=False)
 
         self.add_timeout(self._store_resources, None, 5.0)
-        if self.contest_id is not None:
+        if self.autorestart:
             self._launched_processes = set([])
             self.add_timeout(self._restart_services, None, 5.0,
                              immediately=True)
@@ -157,8 +152,8 @@ class ResourceService(Service):
                         self._procs[service] = proc
 
             if not running:
-                # We give contest_id even if the service doesn't need
-                # it, since it causes no trouble.
+                # We do not pass a contest id to the service. Services
+                # requiring a contest id should be started separately.
                 logger.info("Restarting (%s, %s)...",
                             service.name, service.shard)
                 command = "cms%s" % service.name
@@ -168,9 +163,7 @@ class ResourceService(Service):
                         "scripts",
                         "cms%s" % service.name)
                 process = subprocess.Popen([command,
-                                            "%d" % service.shard,
-                                            "-c",
-                                            "%d" % self.contest_id],
+                                            "%d" % service.shard],
                                            stdout=DEVNULL,
                                            stderr=subprocess.STDOUT
                                            )
@@ -428,8 +421,7 @@ class ResourceService(Service):
         return (bool/None): current status of will_restart.
 
         """
-        # If the contest_id is not set, we cannot autorestart.
-        if self.contest_id is None:
+        if not self.autorestart:
             return None
 
         # Decode name,shard
