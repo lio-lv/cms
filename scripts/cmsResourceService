@@ -44,8 +44,7 @@ def main():
     """
     parser = argparse.ArgumentParser(
         description="Resource monitor and service starter for CMS.")
-    parser.add_argument("-a", "--autorestart", action="store", type=int,
-                        nargs="?", const=-1, metavar="CONTEST_ID",
+    parser.add_argument("-a", "--autorestart", action="store_true", default=False,
                         help="restart automatically services on its machine")
     parser.add_argument("shard", action="store", type=int, nargs="?")
     args = parser.parse_args()
@@ -57,20 +56,7 @@ def main():
 
     test_db_connection()
 
-    if args.autorestart is not None:
-        if args.autorestart == -1:
-            ResourceService(args.shard,
-                            contest_id=ask_for_contest()).run()
-        else:
-            if is_contest_id(args.autorestart):
-                ResourceService(args.shard, contest_id=args.autorestart).run()
-            else:
-                print("There is no contest with the specified id. "
-                      "Please try again.", file=sys.stderr)
-                return False
-    else:
-        return ResourceService(args.shard).run()
-
+    return ResourceService(args.shard, autorestart=args.autorestart).run()
 
 if __name__ == "__main__":
     try:
