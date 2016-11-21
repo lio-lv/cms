@@ -29,7 +29,7 @@
 {% end %}
          value="Add user" />
 </form>
-
+<a href="{{ url_root }}/contest/{{ contest.id }}/users/import">Import users</a>
 <form action="{{ url_root }}/contest/{{ contest.id }}/users" method="POST">
   Edit selected user:
   <input type="submit"

@@ -117,6 +117,7 @@ HANDLERS = [
     (r"/contest/([0-9]+)/users/add", AddContestUserHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)", ParticipationHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/message", MessageHandler),
+    (r"/contest/([0-9]+)/users/import", contestuser.ImportParticipantsHandler),
 
     # Contest's tasks
 
@@ -181,6 +182,7 @@ HANDLERS = [
     (r"/team/([0-9]+)", TeamHandler),
     (r"/user/([0-9]+)/add_participation", AddParticipationHandler),
     (r"/user/([0-9]+)/edit_participation", EditParticipationHandler),
+    (r"/users/import", user.ImportUsersHandler),
 
     # Admins
 

@@ -38,6 +38,7 @@ import tornado.web
 
 from cms.db import Contest, Message, Participation, Submission, User, Team
 from cmscommon.datetime import make_datetime
+from cmscontrib.loaders.simple_csv import CsvUserLoader
 
 from .base import BaseHandler, require_permission
 
@@ -231,3 +232,101 @@ class MessageHandler(BaseHandler):
                         user.username, self.contest.name)
 
         self.redirect("/contest/%s/user/%s" % (self.contest.id, user.id))
+
+
+class ImportParticipantsHandler(BaseHandler):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def get(self, contest_id):
+        self.contest = self.safe_get_item(Contest, contest_id)
+
+        self.r_params = self.render_params()
+        self.r_params["contest"] = self.contest
+        self.render("participations_import.html", **self.r_params)
+
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def post(self, contest_id):
+        fallback_page = "/contest/%s/users/import" % contest_id
+
+        self.contest = self.safe_get_item(Contest, contest_id)
+
+        r_params = self.render_params()
+        action = self.get_body_argument('action', 'upload')
+
+        if action == 'upload':
+            ignore_existing = self.get_body_argument('ignore_existing', False)
+            load_passwords = self.get_body_argument('load_passwords', False)
+            try:
+                user_csv = self.request.files["users_csv"][0]
+                users = CsvUserLoader(None, None, user_csv['body']).read_users()
+                processed_users = []
+                some_participants_exist = False
+                for user in users:
+                    username = user['username']
+                    result = {
+                        'participant': False,
+                        'username': username
+                    }
+                    db_user = self.sql_session.query(User).filter_by(
+                        username=username).first()
+                    if not db_user:
+                        self.application.service.add_notification(
+                            make_datetime(),
+                            'User missing:',
+                            '"%s" doesn\'t exist. Import users first.' %
+                            username)
+                        self.redirect(fallback_page)
+                        return
+                    result['user_id'] = db_user.id
+                    result['team'] = user.get('team')
+                    participation = self.sql_session.query(Participation) \
+                        .filter(Participation.user == db_user) \
+                        .filter(Participation.contest == self.contest) \
+                        .first()
+                    if participation:
+                        result['participant'] = True
+                        if not ignore_existing and not some_participants_exist:
+                            some_participants_exist = True
+                            self.application.service.add_notification(
+                                make_datetime(),
+                                'User exist', 'Some participants already exist')
+                    if load_passwords:
+                        result['password'] = user.get('password')
+                    else:
+                        result['password'] = None
+                    processed_users.append(result)
+                r_params['users'] = processed_users
+                r_params['has_errors'] = \
+                    (some_participants_exist and not ignore_existing)
+                r_params['load_passwords'] = load_passwords
+                self.render('participation_preview.html', **r_params)
+                return
+            except Exception as error:
+                self.application.service.add_notification(
+                    make_datetime(), "Bad csv file", repr(error))
+                self.redirect(fallback_page)
+                return
+        elif action == 'save':
+            user_id = self.get_body_arguments('user_id', None)
+            teams = self.get_body_arguments('team', None)
+            passwords = self.get_body_arguments('password', None)
+            for i in xrange(len(user_id)):
+                user = self.safe_get_item(User, user_id[i])
+                team = None
+                if teams[i]:
+                    team = self.sql_session.query(Team) \
+                        .filter_by(code=teams[i]).first()
+                    if not team:
+                        team = Team(code=teams[i], name=teams[i])
+                        self.sql_session.add(team)
+                password = passwords[i] if passwords else None
+                participation = Participation(user=user,
+                                              contest=self.contest,
+                                              team=team,
+                                              password=password)
+                self.sql_session.add(participation)
+            if self.try_commit():
+                # Create the user on RWS.
+                self.application.service.proxy_service.reinitialize()
+                self.redirect('/contest/%s/users' % contest_id)
+                return
+        self.redirect(fallback_page)

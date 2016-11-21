@@ -1,0 +1,37 @@
+{% extends base.html %}
+
+{% block core %}
+
+<h1>Import users</h1>
+
+<div id="something">
+  <form enctype="multipart/form-data" action="{{ url_root }}/users/import" method="POST">
+    <table>
+      <tr>
+        <td>
+          <span class="info" title="CSV file with user list."></span>
+          User list
+        </td>
+        <td><input type="file" name="users_csv"/></td>
+      </tr>
+      <tr>
+        <td>
+          <span class="info" title="Existing users will be ignored."></span>
+          Ignore existing
+        </td>
+        <td><input type="checkbox" name="ignore_existing" /></td>
+      </tr>
+      <tr>
+        <td>
+          <span class="info" title="Generate random passwords. Passwords from file will be ignored."></span>
+          Generate passwords
+        </td>
+        <td><input type="checkbox" name="generate_passwords" /></td>
+      </tr>
+    </table>
+    <input type="submit" value="Upload" />
+  </form>
+  <div class="hr"></div>
+</div>
+
+{% end %}

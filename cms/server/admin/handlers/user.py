@@ -35,6 +35,12 @@ from cms.db import Contest, Participation, User, Team
 from cmscommon.datetime import make_datetime
 
 from .base import BaseHandler, SimpleHandler, require_permission
+from cmscontrib.loaders.simple_csv import CsvUserLoader
+import cmscommon.crypto
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UserHandler(BaseHandler):
@@ -98,6 +104,7 @@ class TeamHandler(BaseHandler):
     If referred by GET, this handler will return a pre-filled HTML form.
     If referred by POST, this handler will sync the team data with the form's.
     """
+
     def get(self, team_id):
         team = self.safe_get_item(Team, team_id)
 
@@ -277,4 +284,84 @@ class EditParticipationHandler(BaseHandler):
             self.application.service.proxy_service.reinitialize()
 
         # Maybe they'll want to do this again (for another contest).
+        self.redirect(fallback_page)
+
+
+class ImportUsersHandler(
+        SimpleHandler("users_import.html", permission_all=True)):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def post(self):
+        fallback_page = "/users/import"
+
+        r_params = self.render_params()
+        action = self.get_body_argument('action', 'upload')
+
+        if action == 'upload':
+            ignore_existing = self.get_body_argument('ignore_existing', False)
+            generate_passwords = self.get_body_argument('generate_passwords',
+                                                        False)
+            ignored = 0
+            try:
+                user_csv = self.request.files["users_csv"][0]
+                users = CsvUserLoader(None, None, user_csv['body']).get_users()
+                processed_users = []
+                for user in users:
+                    if generate_passwords or callable(user.password):
+                        user.password = None
+                    db_user = self.sql_session.query(User).filter_by(
+                        username=user.username).first()
+                    if db_user:
+                        if ignore_existing:
+                            if db_user.password:
+                                db_user.password = 'not_empty'
+                            processed_users.append((False, db_user))
+                            ignored += 1
+                        else:
+                            self.application.service.add_notification(
+                                make_datetime(), 'Import failed',
+                                'User "%s" already exists' % user.username)
+                            self.redirect(fallback_page)
+                            return
+                    else:
+                        processed_users.append((True, user))
+
+                if ignored:
+                    self.application.service.add_notification(
+                        make_datetime(),
+                        "User exist:",
+                        '%d users already exist, ignored' % ignored)
+                r_params['users'] = processed_users
+                self.render("users_import_preview.html", **r_params)
+                return
+            except Exception as error:
+                self.application.service.add_notification(
+                    make_datetime(), "Bad csv file", repr(error))
+                self.redirect(fallback_page)
+                return
+        elif action == 'save':
+            usernames = self.get_body_arguments('username', None)
+            first_names = self.get_body_arguments('first_name', None)
+            last_names = self.get_body_arguments('last_name', None)
+            passwords = self.get_body_arguments('password', None)
+            for i in xrange(len(usernames)):
+                args = {
+                    'username': usernames[i],
+                    'first_name': first_names[i],
+                    'last_name': last_names[i],
+                }
+                if passwords[i]:
+                    args['password'] = passwords[i]
+                else:
+                    args['password'] = \
+                        cmscommon.crypto.generate_random_password()
+                user = User(**args)
+                self.sql_session.add(user)
+            if self.try_commit():
+                # Create the user on RWS.
+                self.application.service.proxy_service.reinitialize()
+                self.redirect("/users")
+                return
+            else:
+                self.redirect(fallback_page)
+                return
         self.redirect(fallback_page)

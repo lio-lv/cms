@@ -1,0 +1,36 @@
+{% extends base.html %}
+
+{% block core %}
+
+<h1>Import participation</h1>
+
+
+<form enctype="multipart/form-data" action="{{ url_root }}/contest/{{ contest.id }}/users/import" method="POST">
+  <table>
+    <tr>
+      <td>
+        <span class="info" title="CSV file with participants."></span>
+        User list
+      </td>
+      <td><input type="file" name="users_csv"/></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info" title="Existing users will be ignored."></span>
+        Ignore existing
+      </td>
+      <td><input type="checkbox" name="ignore_existing" /></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info" title="Use contest passwords."></span>
+        Set contest passwords from file
+      </td>
+      <td><input type="checkbox" name="load_passwords" /></td>
+    </tr>
+  </table>
+  <input type="submit" value="Upload" />
+</form>
+<div class="hr"></div>
+
+{% end %}

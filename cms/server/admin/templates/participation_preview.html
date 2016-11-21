@@ -1,0 +1,53 @@
+{% extends base.html %}
+
+{% block core %}
+
+<h1>Import users</h1>
+
+<div id="something">
+  <form enctype="multipart/form-data" action="{{ url_root }}/contest/{{ contest.id }}/users/import" method="POST">
+    <input type="hidden" name="action" value="save">
+    <table class="bordered">
+      <thead>
+        <tr>
+          <th>New</th>
+          <th>Username</th>
+          <th>Team</th>
+          {% if load_passwords %}
+          <th>Password</th>
+          {% end %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            {% if u['participant'] %}
+              <td>No</td>
+              <td><a href="{{ url_root }}/contest/{{ contest.id }}/user/{{ u['user_id'] }}">{{ u['username'] }}</a></td>
+              <td>{{ u['team'] if u['team'] else '' }}</td>
+            {% else %}
+              <td>Yes</td>
+              <td>
+                <a href="{{ url_root }}/user/{{ u['user_id'] }}">{{ u['username'] }}</a>
+                <input type="hidden" name="user_id" value="{{ u['user_id'] }}"/>
+              </td>
+              <td><input name='team' value="{{ u['team'] if u['team'] else '' }}"></td>
+              {% if load_passwords %}
+                <td>
+                  <input type="hidden" name="password" value="{{ u['password'] }}">{{ u'\u2713' if u['password'] else u'\u2717' }}
+                </td>
+              {% end %}
+            {% end %}
+          </tr>
+        {% end %}
+      </tbody>
+    </table>
+    {% if not has_errors %}
+      <input type="submit" value="Save" />
+    {% end %}
+  </form>
+  <div class="hr"></div>
+</div>
+
+
+{% end %}

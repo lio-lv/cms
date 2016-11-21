@@ -1,0 +1,59 @@
+{% extends base.html %}
+
+{% block core %}
+
+<h1>Import users</h1>
+
+<div id="something">
+  <form enctype="multipart/form-data" action="{{ url_root }}/users/import" method="POST">
+    <input type="hidden" name="action" value="save">
+    <table class="bordered">
+      <thead>
+        <tr>
+          <th>New</th>
+          <th>Username</th>
+          <th>First name</th>
+          <th>Last name</th>
+          <th>E-mail</th>
+          <th>Password</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for new_user, u in users %}
+          {% if new_user %}
+            <tr>
+              <td>Yes</td>
+              <td><input name='username' value="{{ u.username }}"></td>
+              <td><input name='first_name' value="{{ u.first_name }}"></td>
+              <td><input name="last_name" value="{{ u.last_name }}"></td>
+              <td><input name="email" value="{{ u.email if u.email else '' }}"></td>
+              <td>
+                {% if callable(u.password) or not u.password %}
+                  <input type="hidden" name="password" value="">
+                  Generated
+                {% else %}
+                  <input type="hidden" name="password" value="{{ u.password }}">
+                  &#x2713;
+                {% end %}
+               </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td>No</td>
+              <td><a href="{{ url_root }}/user/{{ u.id }}">{{ u.username }}</a></td>
+              <td>{{ u.first_name }}</td>
+              <td>{{ u.last_name }}</td>
+              <td>{{ u.email if u.email else '' }}</td>
+              <td>{{ u'\u2713' if u.password else  u'\u2717'  }}</td>
+            </tr>
+          {% end %}
+        {% end %}
+      </tbody>
+    </table>
+    <input type="submit" value="Save" />
+  </form>
+  <div class="hr"></div>
+</div>
+
+
+{% end %}
