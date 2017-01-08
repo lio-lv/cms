@@ -37,7 +37,7 @@
       </tr>
       <tr>
         <td>User</td>
-        <td><a href="{{ url_root }}/contest/{{ s.participation.contest.id }}/user/{{ s.participation.user.id }}">{{ s.participation.user.username }}</a></td>
+        <td><a href="{{ url_root }}/contest/{{ s.participation.contest.id }}/user/{{ s.participation.user.id }}/edit">{{ s.participation.user.username }}</a></td>
       </tr>
       <tr>
         <td>Files</td>
@@ -122,7 +122,7 @@
 
 <div id="comment">
   <form enctype="multipart/form-data" action="{{ url_root }}/submission/{{ s.id }}/{{ shown_dataset.id }}/comment" method="POST">
-    <textarea name="comment" cols="40" rows="3">{{ s.comment }}</textarea></br>
+    <textarea name="comment" cols="40" rows="3">{{ s.comment }}</textarea><br/>
     <input
 {% if not current_user.permission_all %}
        disabled

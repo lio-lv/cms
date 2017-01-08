@@ -67,6 +67,18 @@ class SubmitHandler(BaseHandler):
     """Handles the received submissions.
 
     """
+
+    def _send_error(self, subject, text, task):
+        """Shorthand for sending a notification and redirecting."""
+        self.application.service.add_notification(
+            self.current_user.user.username,
+            self.timestamp,
+            subject,
+            text,
+            NOTIFICATION_ERROR)
+        task_name = quote(task.name, safe='')
+        self.redirect("/tasks/{0}/submissions".format(task_name))
+
     @tornado.web.authenticated
     @actual_phase_required(0)
     def post(self, task_name):
@@ -107,13 +119,8 @@ class SubmitHandler(BaseHandler):
                                "at most %d submissions on this task.") %
                         task.max_submission_number)
         except ValueError as error:
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
-                self._("Too many submissions!"),
-                error.message,
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+            self._send_error(
+                self._("Too many submissions!"), error.message, task)
             return
 
         # Enforce minimum time between submissions
@@ -151,31 +158,34 @@ class SubmitHandler(BaseHandler):
                                "after %d seconds from last submission.") %
                         task.min_submission_interval.total_seconds())
         except ValueError as error:
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
-                self._("Submissions too frequent!"),
-                error.message,
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+            self._send_error(
+                self._("Submissions too frequent!"), error.message, task)
             return
+
+        # Required files from the user.
+        required = set([sfe.filename for sfe in task.submission_format])
 
         # Ensure that the user did not submit multiple files with the
         # same name.
         if any(len(filename) != 1 for filename in self.request.files.values()):
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
+            self._send_error(
                 self._("Invalid submission format!"),
                 self._("Please select the correct files."),
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+                task)
             return
 
         # If the user submitted an archive, extract it and use content
-        # as request.files.
+        # as request.files. But only valid for "output only" (i.e.,
+        # not for submissions requiring a programming language
+        # identification).
         if len(self.request.files) == 1 and \
                 self.request.files.keys()[0] == "submission":
+            if any(filename.endswith(".%l") for filename in required):
+                self._send_error(
+                    self._("Invalid submission format!"),
+                    self._("Please select the correct files."),
+                    task)
+                return
             archive_data = self.request.files["submission"][0]
             del self.request.files["submission"]
 
@@ -183,14 +193,10 @@ class SubmitHandler(BaseHandler):
             archive = Archive.from_raw_data(archive_data["body"])
 
             if archive is None:
-                self.application.service.add_notification(
-                    participation.user.username,
-                    self.timestamp,
+                self._send_error(
                     self._("Invalid archive format!"),
                     self._("The submitted archive could not be opened."),
-                    NOTIFICATION_ERROR)
-                self.redirect("/tasks/%s/submissions" % quote(task.name,
-                                                              safe=''))
+                    task)
                 return
 
             # Extract the archive.
@@ -209,17 +215,13 @@ class SubmitHandler(BaseHandler):
         # submission format and no more. Less is acceptable if task
         # type says so.
         task_type = get_task_type(dataset=task.active_dataset)
-        required = set([sfe.filename for sfe in task.submission_format])
         provided = set(self.request.files.keys())
         if not (required == provided or (task_type.ALLOW_PARTIAL_SUBMISSION
                                          and required.issuperset(provided))):
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
+            self._send_error(
                 self._("Invalid submission format!"),
                 self._("Please select the correct files."),
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+                task)
             return
 
         # Add submitted files. After this, files is a dictionary indexed
@@ -271,26 +273,17 @@ class SubmitHandler(BaseHandler):
                 else:
                     submission_lang = lang
         if error is not None:
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
-                self._("Invalid submission!"),
-                error,
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+            self._send_error(self._("Invalid submission!"), error, task)
             return
 
         # Check if submitted files are small enough.
         if any([len(f[1]) > config.max_submission_length
                 for f in files.values()]):
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
+            self._send_error(
                 self._("Submission too big!"),
                 self._("Each source file must be at most %d bytes long.") %
                 config.max_submission_length,
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+                task)
             return
 
         # All checks done, submission accepted.
@@ -331,13 +324,10 @@ class SubmitHandler(BaseHandler):
         # In case of error, the server aborts the submission
         except Exception as error:
             logger.error("Storage failed! %s", error)
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
+            self._send_error(
                 self._("Submission storage failed!"),
                 self._("Please try again."),
-                NOTIFICATION_ERROR)
-            self.redirect("/tasks/%s/submissions" % quote(task.name, safe=''))
+                task)
             return
 
         # All the files are stored, ready to submit!
@@ -364,7 +354,6 @@ class SubmitHandler(BaseHandler):
         # The argument (encripted submission id) is not used by CWS
         # (nor it discloses information to the user), but it is useful
         # for automatic testing to obtain the submission id).
-        # FIXME is it actually used by something?
         self.redirect("/tasks/%s/submissions?%s" % (
             quote(task.name, safe=''),
             encrypt_number(submission.id)))
