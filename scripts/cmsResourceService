@@ -60,6 +60,7 @@ def main():
     success = ResourceService(args.shard, autorestart=args.autorestart).run()
     return 0 if success is True else 1
 
+
 if __name__ == "__main__":
     try:
         sys.exit(main())
