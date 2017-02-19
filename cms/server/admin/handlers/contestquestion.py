@@ -65,11 +65,11 @@ class QuestionReplyHandler(BaseHandler):
 
     """
     QUICK_ANSWERS = {
-        "yes": "Yes",
-        "no": "No",
-        "answered": "Answered in task description",
-        "invalid": "Invalid question",
-        "nocomment": "No comment",
+        "yes": "Jā",
+        "no": "Nē",
+        "answered": "Uzmanīgi izlasiet uzdevuma nosacījumus",
+        "invalid": "Nepieļaujams jautājums",
+        "nocomment": "Bez komentāriem",
     }
 
     @require_permission(BaseHandler.PERMISSION_MESSAGING)
