@@ -67,8 +67,8 @@ class QuestionReplyHandler(BaseHandler):
     QUICK_ANSWERS = {
         "yes": "Jā",
         "no": "Nē",
-        "answered": "Uzmanīgi izlasiet uzdevuma nosacījumus",
-        "invalid": "Nepieļaujams jautājums",
+        "answered": "Atbildēts uzdevuma nosacījumos",
+        "invalid": "Nekorekts jautājums",
         "nocomment": "Bez komentāriem",
     }
 
