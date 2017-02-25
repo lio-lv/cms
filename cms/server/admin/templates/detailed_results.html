@@ -1,0 +1,74 @@
+{% from cms.db import SubmissionResult %}
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <title>{{ contest.description }}</title>
+    <meta charset="utf-8" />
+    <style type="text/css">
+      body {
+        font-size: 50%;
+      }
+      .pagebreak {
+        page-break-after: always;
+      }
+      .results {
+        column-count: 3;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      thead {
+        break-inside: auto; /* Work around Chromium thead overlap bug */
+      }
+      .first-row {
+        border-top: solid thin;
+      }
+      .number {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+{% for result in results %}
+    <h1>{{ result['participation'].user.first_name }} {{ result['participation'].user.last_name }}</h1>
+  {% if result['participation'].team %}
+    <h2>{{ result['participation'].team.name }}</h2>
+  {% end %}
+    <p>Punkti kopā: {{ format_score(result['total_score'], result['max_score'], contest.score_precision) }}</p>
+  {% for task in result['tasks'] %}
+    <h2>{{ task['name'] }}</h2>
+    <p>Punkti par uzdevumu: {{ format_score(task['score'], task['max_score'], task['task'].score_precision) }}</p>
+    {% if task['status'] == SubmissionResult.SCORED %}
+    <div class="results">
+      <table>
+        <thead>
+          <tr>
+            <th>Nr.</th><th>Rezultāts</th><th>Laiks (s)</th><th>Atmiņa (MiB)</th><th>Punkti</th>
+          </tr>
+        </thead>
+        <tbody>
+      {% for group in task['test_results'] %}
+        {% set first = True %}
+        {% for test in group['testcases'] %}
+          <tr {% if first %} class="first-row" {% end %}>
+            <td>{{test['idx']}}</td><td>{{test['text']}}</td><td class="number">{{ "%.3f" % test['time']}}</td><td class="number">{{ "%.2f" % (test['memory'] / (1024.0*1024)) }}</td>
+          {% if first %}
+            <td rowspan="{{len(group['testcases'])}}" class="number">{{ format_score(group['score'], group['max_score'], task['task'].score_precision) }}</td>
+          {% end %}
+          {% set first = False %}
+          </tr>
+        {% end %}
+      {% end %}
+        </tbody>
+      </table>
+    </div>
+    {% elif task['status'] == SubmissionResult.COMPILATION_FAILED %}
+    <p>Kompilēšanas kļūda.</p>
+    {% else %}
+    <p>Testēšana nav pabeigta.</p>
+    {% end %}
+  {% end %}
+  <div class="pagebreak"></div>
+{% end %}
+  </body>
+</html>

@@ -44,6 +44,7 @@ from .contestuser import \
     RemoveParticipationHandler, \
     AddContestUserHandler, \
     ParticipationHandler, \
+    ImportParticipantsHandler, \
     MessageHandler
 from .contesttask import \
     ContestTasksHandler, \
@@ -59,7 +60,8 @@ from .contestquestion import \
     QuestionReplyHandler, \
     QuestionIgnoreHandler
 from .contestranking import \
-    RankingHandler
+    RankingHandler, \
+    DetailedResultsHandler
 from .task import \
     AddTaskHandler, \
     TaskHandler, \
@@ -91,6 +93,7 @@ from .user import \
     AddParticipationHandler, \
     EditParticipationHandler, \
     AddTeamHandler, \
+    ImportUsersHandler, \
     TeamHandler
 from .admin import \
     AddAdminHandler, \
@@ -132,7 +135,7 @@ HANDLERS = [
     (r"/contest/([0-9]+)/user/([0-9]+)/remove", RemoveParticipationHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/edit", ParticipationHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/message", MessageHandler),
-    (r"/contest/([0-9]+)/users/import", contestuser.ImportParticipantsHandler),
+    (r"/contest/([0-9]+)/users/import", ImportParticipantsHandler),
 
     # Contest's tasks
 
@@ -161,6 +164,7 @@ HANDLERS = [
 
     (r"/contest/([0-9]+)/ranking", RankingHandler),
     (r"/contest/([0-9]+)/ranking/([a-z]+)", RankingHandler),
+    (r"/contest/([0-9]+)/printranking", DetailedResultsHandler),
 
     # Tasks
 
@@ -200,7 +204,7 @@ HANDLERS = [
     (r"/team/([0-9]+)", TeamHandler),
     (r"/user/([0-9]+)/add_participation", AddParticipationHandler),
     (r"/user/([0-9]+)/edit_participation", EditParticipationHandler),
-    (r"/users/import", user.ImportUsersHandler),
+    (r"/users/import", ImportUsersHandler),
 
     # Admins
 

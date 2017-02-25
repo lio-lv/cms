@@ -954,6 +954,100 @@ def compute_changes_for_dataset(old_dataset, new_dataset):
 
 ## Computing global scores (for ranking). ##
 
+def task_scored_submission(participation, task):
+    """Return the final submission and score of a contest's user on a task.
+
+    participation (Participation): the user and contest for which to
+        compute the score.
+    task (Task): the task for which to compute the score.
+
+    return ((float, bool, submission)): the score of user on task, True if
+        the score could change because of a submission yet to score, submission
+        producing the score or None if not applicable.
+
+    """
+    # As this function is primarily used when generating a rankings table
+    # (AWS's RankingHandler), we optimize for the case where we are generating
+    # results for all users and all tasks. As such, for the following code to
+    # be more efficient, the query that generated task and user should have
+    # come from a joinedload with the submissions, tokens and
+    # submission_results table.  Doing so means that this function should incur
+    # no exta database queries.
+
+    # If the score could change due to submission still being compiled
+    # / evaluated / scored.
+    partial = False
+
+    submissions = [s for s in participation.submissions if s.task is task]
+    submissions.sort(key=lambda s: s.timestamp)
+
+    if submissions == []:
+        return 0.0, False, None
+
+    score = 0.0
+    scored_submission = None
+
+    if task.score_mode == SCORE_MODE_MAX:
+        # Like in IOI 2013-: maximum score amongst all submissions.
+
+        # The maximum score amongst all submissions (not yet computed
+        # scores count as 0.0).
+        max_score = 0.0
+
+        for s in submissions:
+            sr = s.get_result(task.active_dataset)
+            if sr is not None and sr.scored():
+                if sr.score >= max_score:
+                    max_score = sr.score
+                    scored_submission = s
+            else:
+                partial = True
+
+        score = max_score
+    else:
+        # Like in IOI 2010-2012: maximum score among all tokened
+        # submissions and the last submission.
+
+        # The score of the last submission (if computed, otherwise 0.0).
+        last_score = 0.0
+        last_submission = None
+        # The maximum score amongst the tokened submissions (not yet computed
+        # scores count as 0.0).
+        max_tokened_score = 0.0
+        max_tokened_submission = None
+
+        # Last score: if the last submission is scored we use that,
+        # otherwise we use 0.0 (and mark that the score is partial
+        # when the last submission could be scored).
+        last_s = submissions[-1]
+        last_sr = last_s.get_result(task.active_dataset)
+
+        if last_sr is not None and last_sr.scored():
+            last_score = last_sr.score
+            last_submission = last_s
+        else:
+            partial = True
+
+        for s in submissions:
+            sr = s.get_result(task.active_dataset)
+            if s.tokened():
+                if sr is not None and sr.scored():
+                    if sr.score >= max_tokened_score:
+                        max_tokened_score = sr.score
+                        max_tokened_submission = s
+                else:
+                    partial = True
+
+        if max_tokened_score > last_score:
+            score = max_tokened_score
+            scored_submission = max_tokened_submission
+        else:
+            score = last_score
+            scored_submission = last_submission
+
+    return score, partial, scored_submission
+
+
 def task_score(participation, task):
     """Return the score of a contest's user on a task.
 
@@ -975,60 +1069,5 @@ def task_score(participation, task):
 
     # If the score could change due to submission still being compiled
     # / evaluated / scored.
-    partial = False
-
-    submissions = [s for s in participation.submissions if s.task is task]
-    submissions.sort(key=lambda s: s.timestamp)
-
-    if submissions == []:
-        return 0.0, False
-
-    score = 0.0
-
-    if task.score_mode == SCORE_MODE_MAX:
-        # Like in IOI 2013-: maximum score amongst all submissions.
-
-        # The maximum score amongst all submissions (not yet computed
-        # scores count as 0.0).
-        max_score = 0.0
-
-        for s in submissions:
-            sr = s.get_result(task.active_dataset)
-            if sr is not None and sr.scored():
-                max_score = max(max_score, sr.score)
-            else:
-                partial = True
-
-        score = max_score
-    else:
-        # Like in IOI 2010-2012: maximum score among all tokened
-        # submissions and the last submission.
-
-        # The score of the last submission (if computed, otherwise 0.0).
-        last_score = 0.0
-        # The maximum score amongst the tokened submissions (not yet computed
-        # scores count as 0.0).
-        max_tokened_score = 0.0
-
-        # Last score: if the last submission is scored we use that,
-        # otherwise we use 0.0 (and mark that the score is partial
-        # when the last submission could be scored).
-        last_s = submissions[-1]
-        last_sr = last_s.get_result(task.active_dataset)
-
-        if last_sr is not None and last_sr.scored():
-            last_score = last_sr.score
-        else:
-            partial = True
-
-        for s in submissions:
-            sr = s.get_result(task.active_dataset)
-            if s.tokened():
-                if sr is not None and sr.scored():
-                    max_tokened_score = max(max_tokened_score, sr.score)
-                else:
-                    partial = True
-
-        score = max(last_score, max_tokened_score)
-
-    return score, partial
+    result = task_scored_submission(participation, task)
+    return result[0], result[1]
