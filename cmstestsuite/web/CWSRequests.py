@@ -3,9 +3,11 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
+# Copyright © 2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Luca Chiodini <luca@chiodini.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,20 +26,26 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import re
+import logging
 import os
 import random
+import re
 import tempfile
+import urlparse
 
+from cms.grading.languagemanager import filename_to_language
 from cmscommon.crypto import decrypt_number
 from cmstestsuite.web import GenericRequest, LoginRequest
+
+
+logger = logging.getLogger(__name__)
 
 
 class CWSLoginRequest(LoginRequest):
     def test_success(self):
         if not LoginRequest.test_success(self):
             return False
-        if self.redirected_to != './':
+        if self.redirected_to.rstrip("/") != self.base_url.rstrip("/"):
             return False
         return True
 
@@ -74,7 +82,7 @@ class TaskRequest(GenericRequest):
     """
     def __init__(self, browser, task_id, base_url=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/description" % (self.base_url, task_id)
+        self.url = "%s/tasks/%s/description" % (self.base_url, task_id)
         self.task_id = task_id
 
     def describe(self):
@@ -87,8 +95,8 @@ class TaskStatementRequest(GenericRequest):
     """
     def __init__(self, browser, task_id, language_code, base_url=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/statements/%s" % (self.base_url,
-                                                 task_id, language_code)
+        self.url = "%s/tasks/%s/statements/%s" % (self.base_url,
+                                                  task_id, language_code)
         self.task_id = task_id
 
     def describe(self):
@@ -103,13 +111,23 @@ class SubmitRequest(GenericRequest):
 
     """
     def __init__(self, browser, task, submission_format,
-                 filenames, base_url=None):
+                 filenames, language=None, base_url=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/submit" % (self.base_url, task[1])
+        self.url = "%s/tasks/%s/submit" % (self.base_url, task[1])
         self.task = task
         self.submission_format = submission_format
         self.filenames = filenames
         self.data = {}
+        # If not passed, try to recover the language from the filenames.
+        if language is None:
+            for filename in filenames:
+                lang = filename_to_language(filename)
+                if lang is not None:
+                    language = lang.name
+                    break
+        # Only send the language in the request if not None.
+        if language is not None:
+            self.data = {"language": language}
 
     def _prepare(self):
         GenericRequest._prepare(self)
@@ -136,12 +154,16 @@ class SubmitRequest(GenericRequest):
         if self.redirected_to is None:
             return None
 
-        p = self.redirected_to.split("?")
-        if len(p) != 2:
+        query = urlparse.parse_qs(urlparse.urlsplit(self.redirected_to).query)
+        if "submission_id" not in query or len(query["submission_id"]) != 1:
+            logger.warning("Redirected to an unexpected page: `%s'",
+                           self.redirected_to)
             return None
         try:
-            submission_id = decrypt_number(p[-1])
+            submission_id = decrypt_number(query["submission_id"][0])
         except Exception:
+            logger.warning("Unable to decrypt submission id from page: `%s'",
+                           self.redirected_to)
             return None
         return submission_id
 
@@ -149,18 +171,29 @@ class SubmitRequest(GenericRequest):
 class SubmitUserTestRequest(GenericRequest):
     """Submit a user test in CWS."""
     def __init__(self, browser, task, submission_format,
-                 filenames, base_url=None):
+                 filenames, language=None, base_url=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/test" % (self.base_url, task[1])
+        self.url = "%s/tasks/%s/test" % (self.base_url, task[1])
         self.task = task
         self.submission_format = submission_format
         self.filenames = filenames
         self.data = {}
+        # If not passed, try to recover the language from the filenames.
+        if language is None:
+            for filename in filenames:
+                lang = filename_to_language(filename)
+                if lang is not None:
+                    language = lang.name
+                    break
+        # Only send the language in the request if not None.
+        if language is not None:
+            self.data = {"language": language}
 
     def _prepare(self):
         GenericRequest._prepare(self)
         # Let's generate an arbitrary input file.
-        temp_file, temp_filename = tempfile.mkstemp()
+        # TODO: delete this file once we're done with it.
+        _, temp_filename = tempfile.mkstemp()
         self.files = \
             list(zip(self.submission_format, self.filenames)) + \
             [("input", temp_filename)]
@@ -186,12 +219,16 @@ class SubmitUserTestRequest(GenericRequest):
         if self.redirected_to is None:
             return None
 
-        p = self.redirected_to.split("&")
-        if len(p) != 2:
+        query = urlparse.parse_qs(urlparse.urlsplit(self.redirected_to).query)
+        if "user_test_id" not in query or len(query["user_test_id"]) != 1:
+            logger.warning("Redirected to an unexpected page: `%s'",
+                           self.redirected_to)
             return None
         try:
-            user_test_id = decrypt_number(p[-1])
+            user_test_id = decrypt_number(query["user_test_id"][0])
         except Exception:
+            logger.warning("Unable to decrypt user test id from page: `%s'",
+                           self.redirected_to)
             return None
         return user_test_id
 
@@ -202,9 +239,9 @@ class TokenRequest(GenericRequest):
     """
     def __init__(self, browser, task, submission_num, base_url=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/submissions/%s/token" % (self.base_url,
-                                                        task[1],
-                                                        submission_num)
+        self.url = "%s/tasks/%s/submissions/%s/token" % (self.base_url,
+                                                         task[1],
+                                                         submission_num)
         self.task = task
         self.submission_num = submission_num
         self.data = {}
@@ -219,14 +256,14 @@ class TokenRequest(GenericRequest):
             GenericRequest.specific_info(self)
 
 
-class SubmitRandomRequest(SubmitRequest):
+class SubmitRandomRequest(GenericRequest):
     """Submit a solution in CWS.
 
     """
     def __init__(self, browser, task, base_url=None,
                  submissions_path=None):
         GenericRequest.__init__(self, browser, base_url)
-        self.url = "%stasks/%s/submit" % (self.base_url, task[1])
+        self.url = "%s/tasks/%s/submit" % (self.base_url, task[1])
         self.task = task
         self.submissions_path = submissions_path
         self.data = {}
@@ -249,6 +286,9 @@ class SubmitRandomRequest(SubmitRequest):
         task_path = os.path.join(self.submissions_path, self.task[1])
         sources = os.listdir(task_path)
         source = random.choice(sources)
+        lang = filename_to_language(source)
+        if lang is not None:
+            self.data["language"] = lang.name
         self.source_path = os.path.join(task_path, source)
 
         # Compose the submission format

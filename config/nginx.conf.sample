@@ -104,16 +104,17 @@ http {
             try_files $uri $uri/ =404;
 
             location ~ \.php$ {
-                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
                 fastcgi_index index.php;
                 include fastcgi_params;
             }
         }
 
         # Serve AWS on a prefix.
-        location ^~ /aws/ {
+        location /aws/ {
             proxy_pass http://aws/;
             include proxy_params;
+            proxy_redirect / /aws/;
             proxy_redirect http://$host/ /aws/;
             proxy_redirect https://$host/ /aws/;
             proxy_http_version 1.1;
@@ -134,9 +135,10 @@ http {
         }
 
         # Serve RWS on a prefix.
-        location ^~ /rws/ {
+        location /rws/ {
             proxy_pass http://rws/;
             include proxy_params;
+            proxy_redirect / /rws/;
             proxy_redirect http://$host/ /rws/;
             proxy_redirect https://$host/ /rws/;
             proxy_http_version 1.1;

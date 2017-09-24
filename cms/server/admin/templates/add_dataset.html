@@ -19,15 +19,16 @@ $("select[name=task_type]").change(showTaskTypeOption);
 {% set score_type_list = plugin_list("cms.grading.scoretypes", "scoretypes") %}
 
 <div class="core_title">
-  <h1><a href="{{ url_root }}/task/{{ task.id }}">{{ task.title }} ({{ task.name }})</a> - Create dataset</h1>
+  <h1><a href="{{ url("task", task.id) }}">{{ task.title }} ({{ task.name }})</a> - Create dataset</h1>
 </div>
 
 {% if original_dataset is None %}
-<form enctype="multipart/form-data" action="{{ url_root }}/task/{{ task.id }}/add_dataset" method="POST">
+<form enctype="multipart/form-data" action="{{ url("task", task.id, "add_dataset") }}" method="POST">
 {% else %}
 You are cloning the dataset "{{ original_dataset.description }}".
-<form enctype="multipart/form-data" action="{{ url_root }}/dataset/{{ clone_id }}/clone" method="POST">
+<form enctype="multipart/form-data" action="{{ url("dataset", clone_id, "clone") }}" method="POST">
 {% end %}
+  {% module xsrf_form_html() %}
   <table>
     <tr><td colspan=2><h2>Dataset information</h2></td></tr>
     <tr>
@@ -57,14 +58,14 @@ You are cloning the dataset "{{ original_dataset.description }}".
         <span class="info" title="Total maximum time for each evaluation, in seconds."></span>
         Time limit
       </td>
-      <td><input type="text" name="time_limit" value="{{ 1 if original_dataset is None else original_dataset.time_limit }}"/> second(s)</td>
+      <td><input type="text" name="time_limit" value="{{ 1 if original_dataset is None else original_dataset.time_limit or "" }}"/> second(s)</td>
     </tr>
     <tr>
       <td>
         <span class="info" title="Total maximum memory usage for each evaluation, in MiB (2^20 bytes)."></span>
         Memory limit
       </td>
-      <td><input type="text" name="memory_limit" value="{{ 512 if original_dataset is None else original_dataset.memory_limit }}"/> MiB</td>
+      <td><input type="text" name="memory_limit" value="{{ 512 if original_dataset is None else original_dataset.memory_limit or "" }}"/> MiB</td>
     </tr>
 
     <tr><td colspan=2><h2>Task type settings (<a href="http://cms.readthedocs.org/en/{{ rtd_version }}/Task%20types.html" target="_blank">documentation</a>)</h2></td></tr>

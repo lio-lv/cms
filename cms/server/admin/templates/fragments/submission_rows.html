@@ -9,7 +9,7 @@
   Pages:
   {% for i in range(submission_pages) %}
     {% if i != submission_page %}
-  <a href="{{ url_root }}{{ page_url }}?page={{ i }}">{{ i + 1 }}</a>
+  <a href="{{ url(*page_url, page=i) }}">{{ i + 1 }}</a>
     {% else %}
   {{ i + 1 }}
     {% end %}
@@ -26,6 +26,7 @@
       <th>Status</th>
       <th>Files</th>
       <th>Token</th>
+      <th>Official</th>
       <th>Comment</th>
       <th>Reevaluate</th>
     </tr>

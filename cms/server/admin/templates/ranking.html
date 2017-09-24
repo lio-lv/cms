@@ -1,12 +1,11 @@
 {% extends base.html %}
 
 {% block core %}
-{% from cms.grading import task_score %}
 <div class="core_title">
   <h1>Ranking</h1>
 </div>
-Download as <a href="{{ url_root }}/contest/{{ contest.id }}/ranking/csv">csv</a>, <a href="{{ url_root }}/contest/{{ contest.id }}/ranking/txt">text</a>.
-Detailed rankings: <a href="{{ url_root }}/contest/{{ contest.id }}/printranking">html</a>.
+Download as <a href="{{ url("contest", contest.id, "ranking", "csv") }}">csv</a>, <a href="{{ url("contest", contest.id, "ranking", "txt") }}">text</a>.
+Detailed rankings: <a href="{{ url("contest", contest.id, "printranking") }}">html</a>.
 <table class="bordered">
   <thead>
     <tr>
@@ -16,34 +15,33 @@ Detailed rankings: <a href="{{ url_root }}/contest/{{ contest.id }}/printranking
       <th>Team</th>
       {% end %}
       {% for task in contest.tasks %}
-      <th><a href="{{ url_root }}/task/{{ task.id }}">{{ task.name }}</a></th>
+      <th><a href="{{ url("task", task.id) }}">{{ task.name }}</a></th>
       {% end %}
       <th>Global</th>
     </tr>
   </thead>
   <tbody>
-    {% for p in sorted(contest.participations, key=lambda u: u.user.username) %}
+    {# TODO: Consider client-side sorting #}
+    {# This template assumes participations have two fields in addition to those in the DB: #}
+    {# - scores: a list of pairs (score, is score partial) for each task; #}
+    {# - total_score: the total score for the contest. #}
+    {% for p in sorted(contest.participations, key=lambda p: p.total_score, reverse=True) %}
       {% if not p.hidden %}
     <tr>
-      {% set score = 0.0 %}
-      {% set partial = False %}
-      <td><a href="{{ url_root }}/contest/{{ contest.id }}/user/{{ p.user.id }}/edit">{{ p.user.username }}</a></td>
+      <td><a href="{{ url("contest", contest.id, "user", p.user.id, "edit") }}">{{ p.user.username }}</a></td>
       <td>{{ "%s %s" % (p.user.first_name, p.user.last_name) }}</td>
       {% if show_teams %}
         {% if p.team %}
-        <td><a href="{{ url_root }}/team/{{ p.team_id }}">{{ p.team.name }}</a></td>
+        <td><a href="{{ url("team", p.team_id) }}">{{ p.team.name }}</a></td>
         {% else %}
         <td></td>
         {% end %}
       {% end %}
-      {% for task in contest.tasks %}
-        {% set t_score, t_partial = task_score(p, task) %}
-        {% set t_score = round(t_score, task.score_precision) %}
-        {% set score += t_score %}
-        {% set partial = partial or t_partial %}
+      {% for t_score, t_partial in p.scores %}
       <td>{{ t_score }}{% if t_partial %}*{% end %}</td>
       {% end %}
-      <td>{{ round(score, contest.score_precision) }}{% if partial %}*{% end %}</td>
+      {% set total_score, partial = p.total_score %}
+      <td>{{ total_score }}{% if partial %}*{% end %}</td>
     </tr>
       {% end %}
     {% end %}

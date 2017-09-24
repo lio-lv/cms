@@ -5,7 +5,8 @@
 <h1>Import users</h1>
 
 <div id="something">
-  <form enctype="multipart/form-data" action="{{ url_root }}/users/import" method="POST">
+  <form enctype="multipart/form-data" action="{{ url("users", "import" }}" method="POST">
+  {% module xsrf_form_html() %}
     <table>
       <tr>
         <td>

@@ -27,15 +27,18 @@
 var CMS = CMS || {};
 
 CMS.AWSUtils = function(url_root, timestamp,
-                        contest_start, contest_stop, phase) {
-    this.url_root = url_root;
+                        contest_start, contest_stop,
+                        analysis_start, analysis_stop,
+                        phase) {
+    this.url = CMS.AWSUtils.create_url_builder(url_root);
     this.first_date = new Date();
     this.last_notification = timestamp;
     this.timestamp = timestamp;
     this.contest_start = contest_start;
     this.contest_stop = contest_stop;
+    this.analysis_start = analysis_start;
+    this.analysis_stop = analysis_stop;
     this.phase = phase;
-    this.remaining_div = null;
     this.file_asked_name = "";
     this.file_asked_url = "";
 
@@ -43,6 +46,20 @@ CMS.AWSUtils = function(url_root, timestamp,
     if ("Notification" in window) {
         Notification.requestPermission();
     }
+};
+
+
+CMS.AWSUtils.create_url_builder = function(url_root) {
+    return function() {
+        var url = url_root;
+        for (let component of arguments) {
+            if (url.substr(-1) != "/") {
+                url += "/";
+            }
+            url += encodeURIComponent(component);
+        }
+        return url;
+    };
 };
 
 
@@ -159,7 +176,7 @@ CMS.AWSUtils.prototype.display_notification = function(type, timestamp,
         subject_string = $("<span>").text("Reply to your question. ");
     } else if (type == "new_question") {
         subject_string = $("<a>").text("New question: ")
-            .prop("href", this.url_root + '/contest/' + contest_id + '/questions');
+            .prop("href", this.url("contest", contest_id, "questions"));
     }
 
     var self = this;
@@ -184,14 +201,13 @@ CMS.AWSUtils.prototype.display_notification = function(type, timestamp,
 
     // Trigger a desktop notification as well (but only if it's needed)
     if (type !== "notification") {
-        this.desktop_notification(type, timestamp, subject, text, contest_id);
+        this.desktop_notification(type, timestamp, subject, text);
     }
 };
 
 
 CMS.AWSUtils.prototype.desktop_notification = function(type, timestamp,
-                                                       subject, text,
-                                                       contest_id) {
+                                                       subject, text) {
     // Check desktop notifications support
     if (!("Notification" in window)) {
         return;
@@ -204,9 +220,9 @@ CMS.AWSUtils.prototype.desktop_notification = function(type, timestamp,
 
     // Create notification
     if (Notification.permission === "granted") {
-        var notification = new Notification(subject, {
+        new Notification(subject, {
             "body": text,
-            "icon": "/favicon.ico"
+            "icon": this.url("static", "favicon.ico")
         });
     }
 };
@@ -222,10 +238,8 @@ CMS.AWSUtils.prototype.desktop_notification = function(type, timestamp,
 CMS.AWSUtils.prototype.update_unread_counts = function(delta_public, delta_private) {
     var unread_public = $("#unread_public");
     var unread_private = $("#unread_private");
-    var msgs_public = "";
-    var msgs_private = "";
     if (unread_public) {
-        var msg_public = parseInt(unread_public.text());
+        var msgs_public = parseInt(unread_public.text());
         msgs_public += delta_public;
         unread_public.text(msgs_public);
         if (msgs_public > 0) {
@@ -235,7 +249,7 @@ CMS.AWSUtils.prototype.update_unread_counts = function(delta_public, delta_priva
         }
     }
     if (unread_private) {
-        var msg_private = parseInt(unread_private.text());
+        var msgs_private = parseInt(unread_private.text());
         msgs_private += delta_private;
         unread_private.text(msgs_private);
         if (msgs_private > 0) {
@@ -255,7 +269,7 @@ CMS.AWSUtils.prototype.update_notifications = function() {
     var display_notification = this.bind_func(this, this.display_notification);
     var update_unread_counts = this.bind_func(this, this.update_unread_counts);
     this.ajax_request(
-        this.url_root + "/notifications",
+        this.url("notifications"),
         "last_notification=" + this.last_notification,
         function(response, error) {
             if (error == null) {
@@ -317,35 +331,41 @@ CMS.AWSUtils.prototype.two_digits = function(n) {
  * Update the remaining time showed in the "remaining" div.
  */
 CMS.AWSUtils.prototype.update_remaining_time = function() {
-    var sec_to_end = Infinity;
-    if (this.contest_stop != null) {
-        sec_to_end = this.contest_stop - this.timestamp ;
+    // We assume this.phase always is the correct phase (since this
+    // method also refreshes the page when the phase changes).
+    var relevant_timestamp = null;
+    var text = null;
+    if (this.phase === -1) {
+        relevant_timestamp = this.contest_start;
+        text = "To start of contest: "
+    } else if (this.phase === 0) {
+        relevant_timestamp = this.contest_stop;
+        text = "To end of contest: "
+    } else if (this.phase === 1) {
+        relevant_timestamp = this.analysis_start;
+        text = "To start of analysis: "
+    } else if (this.phase === 2) {
+        relevant_timestamp = this.analysis_stop;
+        text = "To end of analysis: "
     }
 
-    var sec_to_start = -Infinity;
-    if (this.contest_start != null) {
-        sec_to_start = this.contest_start - this.timestamp;
+    // We are in phase 3, nothing to show.
+    if (relevant_timestamp === null) {
+        return;
     }
 
+    // Compute actual seconds to next phase value, and if negative we
+    // refresh to update the phase.
     var now = new Date();
-    var nowsec_to_end = sec_to_end - (now - this.first_date) / 1000;
-    var nowsec_to_start = sec_to_start - (now - this.first_date) / 1000;
-    if ((nowsec_to_end <= 0 && this.phase == 0 ) ||
-        (nowsec_to_start <= 0 && this.phase == -1 )) {
-        window.location.href = this.url_root + "/";
+    var countdown_sec =
+        relevant_timestamp - this.timestamp - (now - this.first_date) / 1000;
+    if (countdown_sec <= 0) {
+        location.reload();
+        return;
     }
 
-    var countdown = nowsec_to_end;
-    if (this.phase == -1) {
-        countdown = nowsec_to_start;
-    }
-
-    if (this.remaining_div == null) {
-        this.remaining_div = $("#remaining");
-    }
-    if (this.remaining_div != null) {
-        this.remaining_div.text(this.format_countdown(countdown));
-    }
+    $("#remaining_text").text(text);
+    $("#remaining_value").text(this.format_countdown(countdown_sec));
 };
 
 
@@ -395,11 +415,10 @@ CMS.AWSUtils.prototype.repr_job = function(job) {
     }
 
     if (object_type == 'submission') {
-        return job_type + ' the <a href="' + this.url_root + '/submission/'
-            + job["object_id"] + '/' + job["dataset_id"] + '">result</a> of <a href="' + this.url_root
-            + '/submission/' + job["object_id"] + '">submission ' + job["object_id"]
-            + '</a> on <a href="' + this.url_root + '/dataset/' + job["dataset_id"]
-            + '">dataset ' + job["dataset_id"] + '</a>'
+        return job_type
+            + ' the <a href="' + this.url("submission", job["object_id"], job["dataset_id"]) + '">result</a>'
+            + ' of <a href="' + this.url("submission", job["object_id"]) + '">submission ' + job["object_id"] + '</a>'
+            + ' on <a href="' + this.url("dataset", job["dataset_id"]) + '">dataset ' + job["dataset_id"] + '</a>'
             + (job["multiplicity"]
                ? " [" + job["multiplicity"] + " time(s) in queue]"
                : "")
@@ -407,9 +426,10 @@ CMS.AWSUtils.prototype.repr_job = function(job) {
                ? " [testcase: `" + job["testcase_codename"] + "']"
                : "");
     } else {
-        return job_type + ' the result of user_test ' + job["object_id"]
-            + ' on <a href="' + this.url_root + '/dataset/' + job["dataset_id"]
-            + '">dataset ' + job["dataset_id"] + '</a>';
+        return job_type
+            + ' the result'
+            + ' of user_test ' + job["object_id"]
+            + ' on <a href="' + this.url("dataset", job["dataset_id"]) + '">dataset ' + job["dataset_id"] + '</a>';
     }
 };
 
@@ -655,17 +675,36 @@ CMS.AWSUtils.prototype.ajax_request = function(url, args, callback) {
 
 
 /**
+ * Sends a request and on success redirect to the page
+ * specified in the response, if present.
+ */
+CMS.AWSUtils.ajax_edit_request = function(type, url) {
+    var settings = {
+        "type": type,
+        headers: {"X-XSRFToken": get_cookie("_xsrf")}
+    };
+    settings["success"] = function(data_redirect_url) {
+        if (data_redirect_url) {
+            window.location.replace(data_redirect_url);
+        }
+    };
+    $.ajax(url, settings);
+};
+
+
+/**
  * Sends a delete request and on success redirect to the page
  * specified in the response, if present.
  */
 CMS.AWSUtils.ajax_delete = function(url) {
-  var settings = {
-    'type': 'DELETE'
-  };
-  settings['success'] = function(data_redirect_url) {
-    if (data_redirect_url) {
-      window.location.replace(data_redirect_url);
-    }
-  };
-  $.ajax(url, settings);
+    CMS.AWSUtils.ajax_edit_request("DELETE", url);
+};
+
+
+/**
+ * Sends a post request and on success. See AWSUtils.ajax_request
+ * for more details.
+ */
+CMS.AWSUtils.ajax_post = function(url) {
+    CMS.AWSUtils.ajax_edit_request("POST", url);
 };

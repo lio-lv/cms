@@ -1,6 +1,7 @@
 {% extends base.html %}
 
 {% block core %}
+{% from cmscommon.crypto import parse_authentication %}
 {% from cms.grading.scoretypes import get_score_type %}
 {% set score_types = {} %}
 
@@ -9,7 +10,8 @@
 <h2 id="title_participations" class="toggling_on">Participations</h2>
 <div id="participations">
 
-  <form action="{{ url_root }}/user/{{ user.id }}/add_participation" method="POST">
+  <form action="{{ url("user", user.id, "add_participation") }}" method="POST">
+    {% module xsrf_form_html() %}
     Add a new participation:
     <select name="contest_id">
       <option value="null" selected>Select a contest</option>
@@ -27,7 +29,8 @@
   {% if participations == [] %}
   <p>No participations found.</p>
   {% else %}
-  <form action="{{ url_root }}/user/{{ user.id }}/edit_participation" method="POST">
+  <form action="{{ url("user", user.id, "edit_participation") }}" method="POST">
+    {% module xsrf_form_html() %}
     Edit selected participation:
     <input type="submit" name="operation" value="Remove" />
     <table class="bordered">
@@ -47,10 +50,10 @@
           <td>
             <input type="radio" name="contest_id" value="{{ p.contest.id }}"/>
           </td>
-          <td><a href="{{ url_root }}/contest/{{ p.contest.id }}/user/{{ p.user.id }}">{{ p.user.username }}</a></td>
+          <td><a href="{{ url("contest", p.contest.id, "user", p.user.id, "edit") }}">{{ p.user.username }}</a></td>
           <td>{{ p.hidden }}</td>
           <td>{{ p.unrestricted }}</td>
-          <td><a href="{{ url_root }}/contest/{{ p.contest.id }}">{{ p.contest.name }}</a></td>
+          <td><a href="{{ url("contest", p.contest.id) }}">{{ p.contest.name }}</a></td>
           <td>{{ p.contest.description }}</td>
         </tr>
         {% end %}
@@ -65,7 +68,8 @@
 <h2 id="title_general_info" class="toggling_on">General Information</h2>
 <div id="general_info">
   <!-- We use "multipart/form-data" to have Tornado distinguish between missing and empty values. -->
-  <form enctype="multipart/form-data" action="{{ url_root }}/user/{{ user.id }}" method="POST" style="display:inline;">
+  <form enctype="multipart/form-data" action="{{ url("user", user.id) }}" method="POST" style="display:inline;">
+    {% module xsrf_form_html() %}
     <table>
       <tr>
         <td>
@@ -93,8 +97,10 @@
           <span class="info" title="Contestant password. Caution: stored in plain text."></span>
           Password
         </td>
-        <!-- FIXME: Plain text? -->
-        <td><input type="text" name="password" value="{{ user.password }}"/></td>
+        <td>
+          {% set hashed_password = user.password %}
+          {% include fragments/hashed_password_form.html %}
+        </td>
       </tr>
       <tr>
         <td>
@@ -123,8 +129,9 @@
     <input type="submit" value="Update" />
     <input type="reset" value="Reset" />
   </form>
-  <form action="{{ url_root }}/users" method="POST" style="display:inline;">
-      <input type="hidden" name="user_id" value="{{user.id}}"/>
+  <form action="{{ url("users") }}" method="POST" style="display:inline;">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="user_id" value="{{ user.id }}"/>
       <input type="submit"
            name="operation"
            value="Remove" style="float: right;"

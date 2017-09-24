@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-01 15:57+0900\n"
+"POT-Creation-Date: 2017-08-21 15:35+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#. translators: decimal mark in fractions (e.g., in "3.14")
+msgid "."
+msgstr ""
 
 msgid "Compilation succeeded"
 msgstr ""
@@ -131,6 +135,9 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
+msgid "Score details temporarily unavailable."
+msgstr ""
+
 #, python-format
 msgid "Subtask %d"
 msgstr ""
@@ -178,6 +185,9 @@ msgid "%Y-%m-%d %H:%M:%S"
 msgstr ""
 
 msgid "loading..."
+msgstr ""
+
+msgid "unknown"
 msgstr ""
 
 #, python-format
@@ -383,10 +393,7 @@ msgstr ""
 msgid "The submitted archive could not be opened."
 msgstr ""
 
-msgid "Cannot recognize submission's language."
-msgstr ""
-
-msgid "All sources must be in the same language."
+msgid "Cannot recognize the submission language."
 msgstr ""
 
 #, python-format
@@ -469,7 +476,7 @@ msgstr ""
 msgid "Invalid test format!"
 msgstr ""
 
-msgid "Cannot recognize test's language."
+msgid "Cannot recognize the user test language."
 msgstr ""
 
 msgid "Invalid test!"
@@ -500,21 +507,51 @@ msgstr ""
 msgid "Executed"
 msgstr ""
 
-#, python-format
-msgid "%(seconds)0.3f s"
+#, python-brace-format
+msgid "{seconds:0.3f} s"
+msgstr ""
+
+msgid "Communication"
+msgstr ""
+
+msgid "Announcements"
+msgstr ""
+
+msgid "(no subject)"
+msgstr ""
+
+msgid "Questions"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Ask question"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "no answer yet"
+msgstr ""
+
+msgid "Messages"
 msgstr ""
 
 #, python-format
 msgid "Automatic (%s)"
 msgstr ""
 
+msgid "Logout"
+msgstr ""
+
 #, python-format
 msgid ""
 "Logged in as <strong>%(first_name)s %(last_name)s</strong> "
 "<em>(%(username)s)</em>"
-msgstr ""
-
-msgid "Logout"
 msgstr ""
 
 msgid "Failed to log in."
@@ -533,9 +570,6 @@ msgid "Password"
 msgstr ""
 
 msgid "Login"
-msgstr ""
-
-msgid "Reset"
 msgstr ""
 
 msgid "New message"
@@ -557,6 +591,12 @@ msgstr ""
 msgid "Until contest ends:"
 msgstr ""
 
+msgid "Until analysis starts:"
+msgstr ""
+
+msgid "Until analysis ends:"
+msgstr ""
+
 msgid "Time left:"
 msgstr ""
 
@@ -564,9 +604,6 @@ msgid "Server time:"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
-
-msgid "Communication"
 msgstr ""
 
 msgid "Statement"
@@ -593,34 +630,15 @@ msgstr ""
 msgid "GNU Affero General Public License"
 msgstr ""
 
-msgid "Announcements"
-msgstr ""
-
-msgid "(no subject)"
-msgstr ""
-
-msgid "Questions"
-msgstr ""
-
-msgid "Subject"
-msgstr ""
-
-msgid "Text"
-msgstr ""
-
-msgid "Ask question"
-msgstr ""
-
-msgid "no answer yet"
-msgstr ""
-
-msgid "Messages"
-msgstr ""
-
 msgid "Programming languages and libraries"
 msgstr ""
 
 msgid "Standard Template Library"
+msgstr ""
+
+msgid ""
+"The main Java class of the solution should have exactly the same name as the "
+"task."
 msgstr ""
 
 msgid "Submission details for compilation"
@@ -675,6 +693,29 @@ msgstr ""
 
 #, python-format
 msgid "The contest started at %(start_time)s and ended at %(stop_time)s."
+msgstr ""
+
+msgid "The analysis mode hasn't started yet."
+msgstr ""
+
+#, python-format
+msgid ""
+"The analysis mode will start at %(start_time)s and will end at %(stop_time)s."
+msgstr ""
+
+msgid "The analysis mode is currently running."
+msgstr ""
+
+#, python-format
+msgid ""
+"The analysis mode started at %(start_time)s and will end at %(stop_time)s."
+msgstr ""
+
+msgid "The analysis mode has already ended."
+msgstr ""
+
+#, python-format
+msgid "The analysis mode started at %(start_time)s and ended at %(stop_time)s."
 msgstr ""
 
 msgid "You have an infinite number of tokens."
@@ -781,12 +822,12 @@ msgstr ""
 msgid "Tokens"
 msgstr ""
 
-#, python-format
-msgid "%(seconds)g second"
+#, python-brace-format
+msgid "{seconds:g} second"
 msgstr ""
 
-#, python-format
-msgid "%(seconds)g seconds"
+#, python-brace-format
+msgid "{seconds:g} seconds"
 msgstr ""
 
 #, python-format
@@ -929,7 +970,7 @@ msgstr ""
 
 #, python-format
 msgid ""
-"You can find the rules for the %(type_pl)s on the <a href=\"%(url_root)s/"
+"You can find the rules for the %(type_pl)s on the <a href=\"%(contest_root)s"
 "\">contest overview page</a>."
 msgstr ""
 
@@ -993,6 +1034,9 @@ msgid "Total score"
 msgstr ""
 
 msgid "Score"
+msgstr ""
+
+msgid "Official"
 msgstr ""
 
 msgid "Token"

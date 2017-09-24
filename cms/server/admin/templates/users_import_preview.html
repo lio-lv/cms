@@ -5,7 +5,8 @@
 <h1>Import users</h1>
 
 <div id="something">
-  <form enctype="multipart/form-data" action="{{ url_root }}/users/import" method="POST">
+  <form enctype="multipart/form-data" action="{{ url("users", "import") }}" method="POST">
+  {% module xsrf_form_html() %}
     <input type="hidden" name="action" value="save">
     <table class="bordered">
       <thead>
@@ -40,7 +41,7 @@
           {% else %}
             <tr>
               <td>No</td>
-              <td><a href="{{ url_root }}/user/{{ u.id }}">{{ u.username }}</a></td>
+              <td><a href="{{ url("user", u.id) }}">{{ u.username }}</a></td>
               <td>{{ u.first_name }}</td>
               <td>{{ u.last_name }}</td>
               <td>{{ u.email if u.email else '' }}</td>

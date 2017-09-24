@@ -3,7 +3,8 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2015-2016 William Di Luigi <williamdiluigi@gmail.com>
-# Copyright © 2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2016-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2017 Myungwoo Chun <mc.tamaki@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -32,15 +33,18 @@ import os
 import sys
 import codecs
 
-from cms import utf8_decoder, LANG_C, LANG_CPP, LANG_JAVA, LANG_PASCAL, \
-    LANG_PHP, LANG_PYTHON
+from cms import utf8_decoder
 from cms.db import Dataset, File, FSObject, Participation, SessionGen, \
     Submission, SubmissionResult, Task, User
+from cms.grading import languagemanager
 
 
 logger = logging.getLogger(__name__)
 
 
+# Templates for the comment at the beginning of the exported submission.
+# Note that output only submissions will contain an initial, C-style formatted
+# comment, so to recover the original file one will need to use tail -n +6.
 _RAW_TEMPLATE_DATA = """
 * user:  %s
 * fname: %s
@@ -49,16 +53,16 @@ _RAW_TEMPLATE_DATA = """
 * score: %s
 * date:  %s
 """
-
-
 TEMPLATE = {
-    LANG_C: "/**%s*/\n" % _RAW_TEMPLATE_DATA,
-    LANG_PASCAL: "(**%s*)\n" % _RAW_TEMPLATE_DATA,
-    LANG_PYTHON: "\"\"\"%s\"\"\"\n" % _RAW_TEMPLATE_DATA,
-    LANG_PHP: "<?php\n/**%s*/\n?>" % _RAW_TEMPLATE_DATA,
+    ".c": "/**%s*/\n" % _RAW_TEMPLATE_DATA,
+    ".pas": "(**%s*)\n" % _RAW_TEMPLATE_DATA,
+    ".py": "\"\"\"%s\"\"\"\n" % _RAW_TEMPLATE_DATA,
+    ".php": "<?php\n/**%s*/\n?>" % _RAW_TEMPLATE_DATA,
+    ".hs": "{-%s-}\n" % _RAW_TEMPLATE_DATA,
 }
-TEMPLATE[LANG_CPP] = TEMPLATE[LANG_C]
-TEMPLATE[LANG_JAVA] = TEMPLATE[LANG_C]
+TEMPLATE[".cpp"] = TEMPLATE[".c"]
+TEMPLATE[".java"] = TEMPLATE[".c"]
+TEMPLATE[".txt"] = TEMPLATE[".c"]
 
 
 def filter_top_scoring(results, unique):
@@ -118,8 +122,8 @@ def main():
                         default=0.0)
     parser.add_argument("--filename", action="store", type=utf8_decoder,
                         help="the filename format to use"
-                             " (default: {id}.{name}.{ext})",
-                        default="{id}.{name}.{ext}")
+                             " (default: {id}.{name}{ext})",
+                        default="{id}.{name}{ext}")
     parser.add_argument("output_dir", action="store", type=utf8_decoder,
                         help="directory where to save the submissions")
 
@@ -181,7 +185,7 @@ def main():
 
         print("%s file(s) will be created." % len(results))
         if raw_input("Continue? [Y/n] ").lower() not in ["y", ""]:
-            sys.exit(0)
+            return 0
 
         done = 0
         for row in results:
@@ -191,13 +195,23 @@ def main():
             name = f_filename
             if name.endswith(".%l"):
                 name = name[:-3]  # remove last 3 chars
+            ext = languagemanager.get_language(s_language).source_extension \
+                if s_language else '.txt'
 
-            filename = args.filename.format(id=s_id, name=name, ext=s_language,
-                                            time=s_timestamp, user=u_name)
+            filename = args.filename.format(id=s_id, name=name, ext=ext,
+                                            time=s_timestamp, user=u_name,
+                                            task=t_name)
             filename = os.path.join(args.output_dir, filename)
             if os.path.exists(filename):
                 logger.warning("Skipping file '%s' because it already exists",
                                filename)
+                continue
+            filedir = os.path.dirname(filename)
+            if not os.path.exists(filedir):
+                os.makedirs(filedir)
+            if not os.path.isdir(filedir):
+                logger.warning("%s is not a directory, skipped.", filedir)
+                continue
 
             fso = FSObject.get_from_digest(f_digest, session)
             assert fso is not None
@@ -214,7 +228,7 @@ def main():
                         sys.exit(1)
 
                     if args.add_info:
-                        data = TEMPLATE[s_language] % (
+                        data = TEMPLATE[ext] % (
                             u_name,
                             u_fname,
                             u_lname,

@@ -114,7 +114,7 @@ class CloneDatasetHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, dataset_id_to_copy):
-        fallback_page = "/dataset/%s/clone" % dataset_id_to_copy
+        fallback_page = self.url("dataset", dataset_id_to_copy, "clone")
 
         dataset = self.safe_get_item(Dataset, dataset_id_to_copy)
         task = self.safe_get_item(Task, dataset.task_id)
@@ -172,7 +172,7 @@ class CloneDatasetHandler(BaseHandler):
             task.active_dataset = dataset
 
         if self.try_commit():
-            self.redirect("/task/%s" % task_id)
+            self.redirect(self.url("task", task_id))
         else:
             self.redirect(fallback_page)
 
@@ -193,7 +193,7 @@ class RenameDatasetHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, dataset_id):
-        fallback_page = "/dataset/%s/rename" % dataset_id
+        fallback_page = self.url("dataset", dataset_id, "rename")
 
         dataset = self.safe_get_item(Dataset, dataset_id)
         task = dataset.task
@@ -213,7 +213,7 @@ class RenameDatasetHandler(BaseHandler):
         dataset.description = description
 
         if self.try_commit():
-            self.redirect("/task/%s" % task.id)
+            self.redirect(self.url("task", task.id))
         else:
             self.redirect(fallback_page)
 
@@ -242,7 +242,7 @@ class DeleteDatasetHandler(BaseHandler):
         if self.try_commit():
             # self.application.service.scoring_service.reinitialize()
             pass
-        self.redirect("/task/%s" % task.id)
+        self.redirect(self.url("task", task.id))
 
 
 class ActivateDatasetHandler(BaseHandler):
@@ -314,7 +314,7 @@ class ActivateDatasetHandler(BaseHandler):
                 make_datetime(),
                 "Messages sent to %d users." % count, "")
 
-        self.redirect("/task/%s" % task.id)
+        self.redirect(self.url("task", task.id))
 
 
 class ToggleAutojudgeDatasetHandler(BaseHandler):
@@ -322,7 +322,7 @@ class ToggleAutojudgeDatasetHandler(BaseHandler):
 
     """
     @require_permission(BaseHandler.PERMISSION_ALL)
-    def get(self, dataset_id):
+    def post(self, dataset_id):
         dataset = self.safe_get_item(Dataset, dataset_id)
 
         dataset.autojudge = not dataset.autojudge
@@ -337,7 +337,7 @@ class ToggleAutojudgeDatasetHandler(BaseHandler):
             self.application.service\
                 .scoring_service.search_operations_not_done()
 
-        self.redirect("/task/%s" % dataset.task_id)
+        self.write("./%d" % dataset.task_id)
 
 
 class AddManagerHandler(BaseHandler):
@@ -356,7 +356,7 @@ class AddManagerHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, dataset_id):
-        fallback_page = "/dataset/%s/managers/add" % dataset_id
+        fallback_page = self.url("dataset", dataset_id, "managers", "add")
 
         dataset = self.safe_get_item(Dataset, dataset_id)
         task = dataset.task
@@ -385,7 +385,7 @@ class AddManagerHandler(BaseHandler):
         self.sql_session.add(manager)
 
         if self.try_commit():
-            self.redirect("/task/%s" % task.id)
+            self.redirect(self.url("task", task.id))
         else:
             self.redirect(fallback_page)
 
@@ -395,7 +395,7 @@ class DeleteManagerHandler(BaseHandler):
 
     """
     @require_permission(BaseHandler.PERMISSION_ALL)
-    def get(self, dataset_id, manager_id):
+    def delete(self, dataset_id, manager_id):
         manager = self.safe_get_item(Manager, manager_id)
         dataset = self.safe_get_item(Dataset, dataset_id)
 
@@ -403,12 +403,12 @@ class DeleteManagerHandler(BaseHandler):
         if manager.dataset is not dataset:
             raise tornado.web.HTTPError(404)
 
-        task = manager.dataset.task
+        task_id = dataset.task_id
 
         self.sql_session.delete(manager)
 
         self.try_commit()
-        self.redirect("/task/%s" % task.id)
+        self.write("./%d" % task_id)
 
 
 class AddTestcaseHandler(BaseHandler):
@@ -427,7 +427,7 @@ class AddTestcaseHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, dataset_id):
-        fallback_page = "/dataset/%s/testcases/add" % dataset_id
+        fallback_page = self.url("dataset", dataset_id, "testcases", "add")
 
         dataset = self.safe_get_item(Dataset, dataset_id)
         task = dataset.task
@@ -477,7 +477,7 @@ class AddTestcaseHandler(BaseHandler):
         if self.try_commit():
             # max_score and/or extra_headers might have changed.
             self.application.service.proxy_service.reinitialize()
-            self.redirect("/task/%s" % task.id)
+            self.redirect(self.url("task", task.id))
         else:
             self.redirect(fallback_page)
 
@@ -498,7 +498,8 @@ class AddTestcasesHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, dataset_id):
-        fallback_page = "/dataset/%s/testcases/add_multiple" % dataset_id
+        fallback_page = \
+            self.url("dataset", dataset_id, "testcases", "add_multiple")
 
         # TODO: this method is quite long, some splitting is needed.
         dataset = self.safe_get_item(Dataset, dataset_id)
@@ -541,7 +542,7 @@ class AddTestcasesHandler(BaseHandler):
         self.application.service.add_notification(
             make_datetime(), successful_subject, successful_text)
         self.application.service.proxy_service.reinitialize()
-        self.redirect("/task/%s" % task.id)
+        self.redirect(self.url("task", task.id))
 
 
 class DeleteTestcaseHandler(BaseHandler):
@@ -549,7 +550,7 @@ class DeleteTestcaseHandler(BaseHandler):
 
     """
     @require_permission(BaseHandler.PERMISSION_ALL)
-    def get(self, dataset_id, testcase_id):
+    def delete(self, dataset_id, testcase_id):
         testcase = self.safe_get_item(Testcase, testcase_id)
         dataset = self.safe_get_item(Dataset, dataset_id)
 
@@ -557,14 +558,14 @@ class DeleteTestcaseHandler(BaseHandler):
         if dataset is not testcase.dataset:
             raise tornado.web.HTTPError(404)
 
-        task = testcase.dataset.task
+        task_id = testcase.dataset.task_id
 
         self.sql_session.delete(testcase)
 
         if self.try_commit():
             # max_score and/or extra_headers might have changed.
             self.application.service.proxy_service.reinitialize()
-        self.redirect("/task/%s" % task.id)
+        self.write("./%d" % task_id)
 
 
 class DownloadTestcasesHandler(FileHandler):
@@ -583,7 +584,8 @@ class DownloadTestcasesHandler(FileHandler):
 
     @require_permission(BaseHandler.AUTHENTICATED)
     def post(self, dataset_id):
-        fallback_page = "/dataset/%s/testcases/download" % dataset_id
+        fallback_page = \
+            self.url("dataset", dataset_id, "testcases", "download")
 
         dataset = self.safe_get_item(Dataset, dataset_id)
 

@@ -5,12 +5,13 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2015 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2012-2017 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2015 William Di Luigi <williamdiluigi@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
 # Copyright © 2016 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
+# Copyright © 2017 Valentin Rosca <rosca.valentin2012@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -67,7 +68,7 @@ class ContestUsersHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id):
-        fallback_page = "/contest/%s/users" % contest_id
+        fallback_page = self.url("contest", contest_id, "users")
 
         try:
             user_id = self.get_argument("user_id")
@@ -82,7 +83,8 @@ class ContestUsersHandler(BaseHandler):
             return
 
         if operation == self.REMOVE_FROM_CONTEST:
-            asking_page = "/contest/%s/user/%s/remove" % (contest_id, user_id)
+            asking_page = \
+                self.url("contest", contest_id, "user", user_id, "remove")
             # Open asking for remove page
             self.redirect(asking_page)
             return
@@ -140,7 +142,7 @@ class RemoveParticipationHandler(BaseHandler):
 class AddContestUserHandler(BaseHandler):
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id):
-        fallback_page = "/contest/%s/users" % contest_id
+        fallback_page = self.url("contest", contest_id, "users")
 
         self.contest = self.safe_get_item(Contest, contest_id)
 
@@ -196,7 +198,8 @@ class ParticipationHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id, user_id):
-        fallback_page = "/contest/%s/user/%s/edit" % (contest_id, user_id)
+        fallback_page = \
+            self.url("contest", contest_id, "user", user_id, "edit")
 
         self.contest = self.safe_get_item(Contest, contest_id)
         participation = self.sql_session.query(Participation)\
@@ -211,8 +214,9 @@ class ParticipationHandler(BaseHandler):
         try:
             attrs = participation.get_attrs()
 
-            self.get_string(attrs, "password", empty=None)
-            self.get_ip_address_or_subnet(attrs, "ip")
+            self.get_password(attrs, participation.password, True)
+
+            self.get_ip_networks(attrs, "ip")
             self.get_datetime(attrs, "starting_time")
             self.get_timedelta_sec(attrs, "delay_time")
             self.get_timedelta_sec(attrs, "extra_time")
@@ -268,7 +272,7 @@ class MessageHandler(BaseHandler):
             logger.info("Message submitted to user %s in contest %s.",
                         user.username, self.contest.name)
 
-        self.redirect("/contest/%s/user/%s/edit" % (self.contest.id, user.id))
+        self.redirect(self.url("contest", contest_id, "user", user_id, "edit"))
 
 
 class ImportParticipantsHandler(BaseHandler):
@@ -282,7 +286,7 @@ class ImportParticipantsHandler(BaseHandler):
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id):
-        fallback_page = "/contest/%s/users/import" % contest_id
+        fallback_page = self.url("contest", contest_id, "users", "import")
 
         self.contest = self.safe_get_item(Contest, contest_id)
 
@@ -364,6 +368,6 @@ class ImportParticipantsHandler(BaseHandler):
             if self.try_commit():
                 # Create the user on RWS.
                 self.application.service.proxy_service.reinitialize()
-                self.redirect('/contest/%s/users' % contest_id)
+                self.redirect(self.url("contest", contest_id, "users")
                 return
         self.redirect(fallback_page)

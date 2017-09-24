@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-07 12:47+0200\n"
-"PO-Revision-Date: 2015-02-07 17:12+0100\n"
+"POT-Creation-Date: 2017-08-21 15:35+0300\n"
+"PO-Revision-Date: 2017-01-29 19:41+0100\n"
 "Last-Translator: Stefano Maggiolo <s.maggiolo@gmail.com>\n"
 "Language-Team: Italian <>\n"
 "Language: it\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
+
+#. translators: decimal mark in fractions (e.g., in "3.14")
+msgid "."
+msgstr ","
 
 msgid "Compilation succeeded"
 msgstr "Compilazione eseguita con successo"
@@ -65,6 +69,14 @@ msgstr "L'output è corretto"
 
 msgid "Your submission ran and gave the correct answer"
 msgstr "La tua sottoposizione è stata eseguita, è ha dato la risposta corretta"
+
+msgid "Output is partially correct"
+msgstr "L'output è parzialmente corretto"
+
+msgid "Your submission ran and gave the partially correct answer"
+msgstr ""
+"La tua sottoposizione è stata eseguita, è ha dato una risposta parzialmente "
+"corretta"
 
 msgid "Output isn't correct"
 msgstr "L'output non è corretto"
@@ -154,6 +166,9 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Score details temporarily unavailable."
+msgstr ""
+
 #, python-format
 msgid "Subtask %d"
 msgstr "Subtask %d"
@@ -202,6 +217,9 @@ msgstr "%H:%M:%S %d/%m/%Y"
 
 msgid "loading..."
 msgstr "caricamento in corso..."
+
+msgid "unknown"
+msgstr "sconosciuto"
 
 #, python-format
 msgid "%d second"
@@ -326,6 +344,12 @@ msgstr[1] "Non puoi usare più di %(max_number)d %(type_pl)s in totale."
 msgid "You have no limitations on how you use them."
 msgstr "Non hai limitazioni sul loro utilizzo."
 
+msgid "Question too big!"
+msgstr "La domanda è troppo lunga!"
+
+msgid "You have reached the question length limit."
+msgstr "Hai raggiunto la lunghezza massima per la domanda."
+
 msgid "Question received"
 msgstr "Domanda ricevuta"
 
@@ -406,11 +430,8 @@ msgstr "Formato archivio invalido!"
 msgid "The submitted archive could not be opened."
 msgstr "Impossibile aprire l'archivio sottoposto."
 
-msgid "Cannot recognize submission's language."
-msgstr "Impossibile riconoscere il linguaggio della sottoposizione"
-
-msgid "All sources must be in the same language."
-msgstr "Tutti i sorgenti devono essere nello stesso linguaggio."
+msgid "Cannot recognize the submission language."
+msgstr "Impossibile riconoscere il linguaggio della sottoposizione."
 
 #, python-format
 msgid "Language %s not allowed in this contest."
@@ -494,8 +515,8 @@ msgstr "Test troppo frequenti!"
 msgid "Invalid test format!"
 msgstr "Formato test invalido!"
 
-msgid "Cannot recognize test's language."
-msgstr "Impossibile riconoscere il linguaggio del test"
+msgid "Cannot recognize the user test language."
+msgstr "Impossibile riconoscere il linguaggio del test."
 
 msgid "Invalid test!"
 msgstr "Test invalido!"
@@ -525,13 +546,46 @@ msgstr "Esecuzione in corso..."
 msgid "Executed"
 msgstr "Eseguito"
 
-#, python-format
-msgid "%(seconds)0.3f s"
-msgstr "%(seconds)0.3f s"
+#, python-brace-format
+msgid "{seconds:0.3f} s"
+msgstr "{seconds:0.3f} s"
+
+msgid "Communication"
+msgstr "Comunicazioni"
+
+msgid "Announcements"
+msgstr "Annunci"
+
+msgid "(no subject)"
+msgstr "(senza oggetto)"
+
+msgid "Questions"
+msgstr "Domande"
+
+msgid "Subject"
+msgstr "Oggetto"
+
+msgid "Text"
+msgstr "Testo"
+
+msgid "Ask question"
+msgstr "Poni la domanda"
+
+msgid "Reset"
+msgstr "Reset"
+
+msgid "no answer yet"
+msgstr "nessuna risposta"
+
+msgid "Messages"
+msgstr "Messaggi"
 
 #, python-format
 msgid "Automatic (%s)"
 msgstr "Automatica (%s)"
+
+msgid "Logout"
+msgstr "Logout"
 
 #, python-format
 msgid ""
@@ -540,9 +594,6 @@ msgid ""
 msgstr ""
 "Accesso effettuato come <strong>%(first_name)s %(last_name)s</strong> "
 "<em>(%(username)s)</em>"
-
-msgid "Logout"
-msgstr "Logout"
 
 msgid "Failed to log in."
 msgstr "Accesso fallito."
@@ -561,9 +612,6 @@ msgstr "Password"
 
 msgid "Login"
 msgstr "Login"
-
-msgid "Reset"
-msgstr "Reset"
 
 msgid "New message"
 msgstr "Nuovo messaggio"
@@ -584,6 +632,14 @@ msgstr "Fino a inizio gara:"
 msgid "Until contest ends:"
 msgstr "Fino a fine gara:"
 
+#, fuzzy
+msgid "Until analysis starts:"
+msgstr "Fino a inizio gara:"
+
+#, fuzzy
+msgid "Until analysis ends:"
+msgstr "Fino a fine gara:"
+
 msgid "Time left:"
 msgstr "Tempo rimanente:"
 
@@ -592,9 +648,6 @@ msgstr "Orario sul server:"
 
 msgid "Overview"
 msgstr "Panoramica"
-
-msgid "Communication"
-msgstr "Comunicazioni"
 
 msgid "Statement"
 msgstr "Descrizione"
@@ -620,35 +673,18 @@ msgstr "è rilasciato sotto la"
 msgid "GNU Affero General Public License"
 msgstr "GNU Affero General Public License"
 
-msgid "Announcements"
-msgstr "Annunci"
-
-msgid "(no subject)"
-msgstr "(senza oggetto)"
-
-msgid "Questions"
-msgstr "Domande"
-
-msgid "Subject"
-msgstr "Oggetto"
-
-msgid "Text"
-msgstr "Testo"
-
-msgid "Ask question"
-msgstr "Poni la domanda"
-
-msgid "no answer yet"
-msgstr "nessuna risposta"
-
-msgid "Messages"
-msgstr "Messaggi"
-
 msgid "Programming languages and libraries"
 msgstr "Linguaggi di programmazione e librerie"
 
 msgid "Standard Template Library"
 msgstr "Standard Template Library"
+
+msgid ""
+"The main Java class of the solution should have exactly the same name as the "
+"task."
+msgstr ""
+"In Java, la classe principale della soluzione deve avere lo stesso nome del "
+"problema."
 
 msgid "Submission details for compilation"
 msgstr "Dettagli della compilazione della sottoposizione"
@@ -709,6 +745,33 @@ msgstr "La gara è già terminata."
 
 #, python-format
 msgid "The contest started at %(start_time)s and ended at %(stop_time)s."
+msgstr ""
+"La gara è iniziata alle %(start_time)s ed è terminata alle %(stop_time)s."
+
+#, fuzzy
+msgid "The analysis mode hasn't started yet."
+msgstr "La gara non è ancora iniziata."
+
+#, fuzzy, python-format
+msgid ""
+"The analysis mode will start at %(start_time)s and will end at %(stop_time)s."
+msgstr "La gara inizierà alle %(start_time)s e terminerà alle %(stop_time)s."
+
+#, fuzzy
+msgid "The analysis mode is currently running."
+msgstr "La gara è in corso."
+
+#, fuzzy, python-format
+msgid ""
+"The analysis mode started at %(start_time)s and will end at %(stop_time)s."
+msgstr "La gara è iniziata alle %(start_time)s e terminerà alle %(stop_time)s."
+
+#, fuzzy
+msgid "The analysis mode has already ended."
+msgstr "La gara è già terminata."
+
+#, fuzzy, python-format
+msgid "The analysis mode started at %(start_time)s and ended at %(stop_time)s."
 msgstr ""
 "La gara è iniziata alle %(start_time)s ed è terminata alle %(stop_time)s."
 
@@ -841,13 +904,13 @@ msgstr "File"
 msgid "Tokens"
 msgstr "Token"
 
-#, python-format
-msgid "%(seconds)g second"
-msgstr "%(seconds)g secondo"
+#, python-brace-format
+msgid "{seconds:g} second"
+msgstr "{seconds:g} secondo"
 
-#, python-format
-msgid "%(seconds)g seconds"
-msgstr "%(seconds)g secondi"
+#, python-brace-format
+msgid "{seconds:g} seconds"
+msgstr "{seconds:g} secondi"
 
 #, python-format
 msgid "%(mb)d MiB"
@@ -993,12 +1056,12 @@ msgstr "Alcuni dettagli"
 msgid "Compilation commands"
 msgstr "Comandi di compilazione"
 
-#, python-format
+#, fuzzy, python-format
 msgid ""
-"You can find the rules for the %(type_pl)s on the <a href=\"%(url_root)s/"
+"You can find the rules for the %(type_pl)s on the <a href=\"%(contest_root)s"
 "\">contest overview page</a>."
 msgstr ""
-"Puoi trovare le regole per i %(type_pl)s nella <a href=\"%(url_root)s/"
+"Puoi trovare le regole per i %(type_pl)s nella <a href=\"%(contest_root)s/"
 "\">pagina di panormica della gara</a>."
 
 msgid ""
@@ -1066,6 +1129,9 @@ msgstr "Punteggio totale"
 msgid "Score"
 msgstr "Punteggio"
 
+msgid "Official"
+msgstr ""
+
 msgid "Token"
 msgstr "Token"
 
@@ -1105,3 +1171,6 @@ msgstr "Dettagli del test"
 
 msgid "Evaluation outcome"
 msgstr "Valutazione"
+
+#~ msgid "All sources must be in the same language."
+#~ msgstr "Tutti i sorgenti devono essere nello stesso linguaggio."

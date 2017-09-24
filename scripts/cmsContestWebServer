@@ -46,6 +46,7 @@ def main():
     success = default_argument_parser("Contestants' web server for CMS.",
                                       ContestWebServer,
                                       ask_contest=ask_for_contest).run()
+
     return 0 if success is True else 1
 
 
