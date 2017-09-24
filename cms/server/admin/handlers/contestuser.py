@@ -368,6 +368,6 @@ class ImportParticipantsHandler(BaseHandler):
             if self.try_commit():
                 # Create the user on RWS.
                 self.application.service.proxy_service.reinitialize()
-                self.redirect(self.url("contest", contest_id, "users")
+                self.redirect(self.url("contest", contest_id, "users"))
                 return
         self.redirect(fallback_page)
