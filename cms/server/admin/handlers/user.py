@@ -37,7 +37,7 @@ from cmscommon.datetime import make_datetime
 
 from .base import BaseHandler, SimpleHandler, require_permission
 from cmscontrib.loaders.simple_csv import CsvUserLoader
-import cmscommon.crypto
+import cmscommon.crypto as crypto
 
 import logging
 
@@ -411,8 +411,8 @@ class ImportUsersHandler(
                 if passwords[i]:
                     args['password'] = passwords[i]
                 else:
-                    args['password'] = \
-                        cmscommon.crypto.generate_random_password()
+                    args['password'] = crypto.generate_random_password()
+                args['password'] = crypto.hash_password(args['password'])
                 user = User(**args)
                 self.sql_session.add(user)
             if self.try_commit():

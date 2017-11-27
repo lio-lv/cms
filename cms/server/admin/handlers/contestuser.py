@@ -37,10 +37,12 @@ from __future__ import unicode_literals
 import logging
 
 import tornado.web
+import re
 
 from cms.db import Contest, Message, Participation, Submission, User, Team
 from cmscommon.datetime import make_datetime
 from cmscontrib.loaders.simple_csv import CsvUserLoader
+import cmscommon.crypto
 
 from .base import BaseHandler, require_permission
 
@@ -284,6 +286,12 @@ class ImportParticipantsHandler(BaseHandler):
         self.r_params["contest"] = self.contest
         self.render("participations_import.html", **self.r_params)
 
+    @staticmethod
+    def prepare_team_code(name):
+        result = name.lower().replace(" ", "_").replace(".", "_")
+        return re.sub(r'[^a-zA-Z0-9_-]+', '_', result)
+
+
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id):
         fallback_page = self.url("contest", contest_id, "users", "import")
@@ -331,7 +339,8 @@ class ImportParticipantsHandler(BaseHandler):
                                 make_datetime(),
                                 'User exist', 'Some participants already exist')
                     if load_passwords:
-                        result['password'] = user.get('password')
+                        result['password'] = \
+                            cmscommon.crypto.hash_password(user.get('password'))
                     else:
                         result['password'] = None
                     processed_users.append(result)
@@ -354,10 +363,12 @@ class ImportParticipantsHandler(BaseHandler):
                 user = self.safe_get_item(User, user_id[i])
                 team = None
                 if teams[i]:
+                    team_code = ImportParticipantsHandler \
+                        .prepare_team_code(teams[i])
                     team = self.sql_session.query(Team) \
-                        .filter_by(code=teams[i]).first()
+                        .filter_by(code=team_code).first()
                     if not team:
-                        team = Team(code=teams[i], name=teams[i])
+                        team = Team(code=team_code, name=teams[i])
                         self.sql_session.add(team)
                 password = passwords[i] if passwords else None
                 participation = Participation(user=user,

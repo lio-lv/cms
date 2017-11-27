@@ -24,7 +24,7 @@
           <tr>
             {% if u['participant'] %}
               <td>No</td>
-              <td><a href="{{ url("contest", contest.id, "user", u['user_id'] }}">{{ u['username'] }}</a></td>
+              <td><a href="{{ url("contest", contest.id, "user", u['user_id']) }}">{{ u['username'] }}</a></td>
               <td>{{ u['team'] if u['team'] else '' }}</td>
             {% else %}
               <td>Yes</td>
