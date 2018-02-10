@@ -27,6 +27,12 @@
 <p><a href="/doc/fpc/fpctoc.html">{{ _("Documentation") }}</a></p>
 {% end %}
 
+{% if any(".py" in get_language(lang).source_extensions for lang in contest.languages) %}
+<h3>Python 3</h3>
+
+<p><a href="/doc/python/">{{ _("Documentation") }}</a></p>
+{% end %}
+
 
 <h2>{{ _("Submission details for compilation") }}</h2>
 
