@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
-# Copyright © 2015-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2015-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,11 @@
 """Utility class to run functional-like tests."""
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import datetime
 import io
@@ -47,6 +50,7 @@ logger = logging.getLogger(__name__)
 class TestRunner(object):
     def __init__(self, test_list, contest_id=None, workers=1):
         self.start_time = datetime.datetime.now()
+        self.last_end_time = self.start_time
 
         self.ps = ProgramStarter()
 
@@ -90,7 +94,7 @@ class TestRunner(object):
         try:
             git_root = subprocess.check_output(
                 "git rev-parse --show-toplevel", shell=True,
-                stderr=io.open(os.devnull, "wb")).strip()
+                stderr=io.open(os.devnull, "wb")).decode('utf-8').strip()
         except subprocess.CalledProcessError:
             git_root = None
         CONFIG["TEST_DIR"] = git_root
@@ -101,12 +105,10 @@ class TestRunner(object):
 
     def log_elapsed_time(self):
         end_time = datetime.datetime.now()
-        secs = int((end_time - self.start_time).total_seconds())
-        mins = secs / 60
-        secs = secs % 60
-        hrs = mins / 60
-        mins = mins % 60
-        logger.info("Time elapsed: %02d:%02d:%02d", hrs, mins, secs)
+        logger.info("Time elapsed: %s, since last: %s",
+                    end_time - self.start_time,
+                    end_time - self.last_end_time)
+        self.last_end_time = end_time
 
     # Service management.
 
@@ -278,8 +280,12 @@ class TestRunner(object):
                 for lang in test.languages:
                     yield (test, lang)
 
-    def submit_tests(self):
+    def submit_tests(self, concurrent_submit_and_eval=True):
         """Create the tasks, and submit for all languages in all tests.
+
+        concurrent_submit_and_eval (boolean): if False, start ES only
+            after CWS received all the submissions, with the goal of
+            having a clearer view of the time each step takes.
 
         """
         # Pre-install all tasks in the contest. After this, we restart
@@ -287,12 +293,17 @@ class TestRunner(object):
         # tasks and sending them to RWS.
         for test in self.test_list:
             self.create_or_get_task(test.task_module)
-        self.ps.start("EvaluationService", contest=self.contest_id)
+
+        # We only need CWS to submit, and we can start the other services while
+        # submissions are ongoing.
         self.ps.start("ContestWebServer", contest=self.contest_id)
-        self.ps.start("ProxyService", contest=self.contest_id)
-        for shard in xrange(self.workers):
-            self.ps.start("Worker", shard)
         self.ps.wait()
+
+        self.ps.start("ProxyService", contest=self.contest_id)
+        for shard in range(self.workers):
+            self.ps.start("Worker", shard)
+        if concurrent_submit_and_eval:
+            self.ps.start("EvaluationService", contest=self.contest_id)
 
         for i, (test, lang) in enumerate(self._all_submissions()):
             logging.info("Submitting submission %s/%s: %s (%s)",
@@ -314,6 +325,12 @@ class TestRunner(object):
             except TestFailure as f:
                 logging.error("(FAILED (while submitting): %s)", f.message)
                 self.failures.append((test, lang, f.message))
+
+        # Even if we started ES earlier, we did not block until it was ready,
+        # so we do it now.
+        if not concurrent_submit_and_eval:
+            self.ps.start("EvaluationService", contest=self.contest_id)
+        self.ps.wait()
 
     def wait_for_evaluation(self):
         """Wait for all submissions to evaluate.

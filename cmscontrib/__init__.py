@@ -27,13 +27,18 @@ losing no data in the process).
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iterkeys
 
 import hashlib
 import io
 import os
 
+from cmscommon.binary import bin_to_hex
 from cms.db import Base, Contest, Participation, Submission, Task
 
 
@@ -49,10 +54,10 @@ def sha1sum(path):
     with io.open(path, 'rb') as fin:
         hasher = hashlib.new("sha1")
         buf = fin.read(buffer_length)
-        while buf != b'':
+        while len(buf) > 0:
             hasher.update(buf)
             buf = fin.read(buffer_length)
-        return hasher.hexdigest()
+        return bin_to_hex(hasher.digest())
 
 
 # Taken from
@@ -123,7 +128,7 @@ class BaseImporter(object):
                 old_datasets = dict((d.description, d) for d in old_value)
                 new_datasets = dict((d.description, d) for d in new_value)
 
-                for key in set(new_datasets.keys()):
+                for key in iterkeys(new_datasets):
                     if key not in old_datasets:
                         # create
                         temp = new_datasets[key]
@@ -160,7 +165,7 @@ class BaseImporter(object):
 
             # General case #1: a dict
             elif isinstance(old_value, dict):
-                for key in set(old_value.keys()) | set(new_value.keys()):
+                for key in set(iterkeys(old_value)) | set(iterkeys(new_value)):
                     if key in new_value:
                         if key not in old_value:
                             # create
@@ -183,12 +188,12 @@ class BaseImporter(object):
             elif isinstance(old_value, list):
                 old_len = len(old_value)
                 new_len = len(new_value)
-                for i in xrange(min(old_len, new_len)):
+                for i in range(min(old_len, new_len)):
                     self._update_object(old_value[i], new_value[i])
                 if old_len > new_len:
                     del old_value[new_len:]
                 elif new_len > old_len:
-                    for i in xrange(old_len, new_len):
+                    for i in range(old_len, new_len):
                         # FIXME This hack is needed because of some
                         # funny behavior of SQLAlchemy-instrumented
                         # collections when copying values, that

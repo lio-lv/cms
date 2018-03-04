@@ -25,17 +25,21 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
+import hashlib
 import io
 import os
 import random
-from StringIO import StringIO
-import hashlib
 import shutil
 import unittest
+from io import BytesIO
 
+from cmscommon.binary import bin_to_hex
 from cms.db.filecacher import FileCacher
 
 
@@ -62,7 +66,7 @@ class RandomFile(object):
         if byte_num > self.dim:
             byte_num = self.dim
         if byte_num == 0:
-            return ''
+            return b''
         buf = self.source.read(byte_num)
         self.dim -= len(buf)
         self.hasher.update(buf)
@@ -81,7 +85,7 @@ class RandomFile(object):
         return (string): digest.
 
         """
-        return self.hasher.hexdigest()
+        return bin_to_hex(self.hasher.digest())
 
 
 class HashingFile(object):
@@ -109,7 +113,7 @@ class HashingFile(object):
         return (string): digest.
 
         """
-        return self.hasher.hexdigest()
+        return bin_to_hex(self.hasher.digest())
 
     def close(self):
         """Do nothing, because there is no hidden file we are writing
@@ -153,11 +157,12 @@ class TestFileCacher(unittest.TestCase):
 
         """
         self.size = 100
-        self.content = b"".join(chr(random.randint(0, 255))
-                                for unused_i in xrange(self.size))
+        # We need to wrap the generator in a list because of a
+        # shortcoming of future's bytes implementation.
+        self.content = bytes([random.getrandbits(8) for _ in range(self.size)])
 
-        data = self.file_cacher.put_file_from_fobj(StringIO(self.content),
-                                                   u"Test #000")
+        data = self.file_cacher.put_file_from_fobj(BytesIO(self.content),
+                                                   "Test #000")
 
         if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.fail("File not stored in local cache.")
@@ -170,7 +175,7 @@ class TestFileCacher(unittest.TestCase):
             self.digest = data
 
         # Retrieve the file.
-        self.fake_content = "Fake content.\n"
+        self.fake_content = b"Fake content.\n"
         with io.open(self.cache_path, "wb") as cached_file:
             cached_file.write(self.fake_content)
         try:
@@ -242,12 +247,13 @@ class TestFileCacher(unittest.TestCase):
         Then retrieve it as a string.
 
         """
-        self.content = b"".join(chr(random.randint(0, 255))
-                                for unused_i in xrange(100))
+        # We need to wrap the generator in a list because of a
+        # shortcoming of future's bytes implementation.
+        self.content = bytes([random.getrandbits(8) for _ in range(100)])
 
         try:
             data = self.file_cacher.put_file_content(self.content,
-                                                     u"Test #005")
+                                                     "Test #005")
         except Exception as error:
             self.fail("Error received: %r." % error)
             return
@@ -263,7 +269,7 @@ class TestFileCacher(unittest.TestCase):
             self.digest = data
 
         # Retrieve the file as a string.
-        self.fake_content = "Fake content.\n"
+        self.fake_content = b"Fake content.\n"
         with io.open(self.cache_path, "wb") as cached_file:
             cached_file.write(self.fake_content)
         try:
@@ -287,7 +293,7 @@ class TestFileCacher(unittest.TestCase):
         """
         rand_file = RandomFile(10000000)
         try:
-            data = self.file_cacher.put_file_from_fobj(rand_file, u"Test #007")
+            data = self.file_cacher.put_file_from_fobj(rand_file, "Test #007")
         except Exception as error:
             self.fail("Error received: %r." % error)
             return

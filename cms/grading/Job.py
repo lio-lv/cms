@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2013-2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2013-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 #
@@ -35,10 +35,13 @@ testcase".
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import itervalues, iteritems
 
-import json
 import logging
 
 from cms.db import File, Manager, Executable, UserTestExecutable, Evaluation
@@ -82,7 +85,7 @@ class Job(object):
         operation (dict|None): the operation, in the format that
             ESOperation.to_dict() uses.
         task_type (string|None): the name of the task type.
-        task_type_parameters (string|None): the parameters for the
+        task_type_parameters (object|None): the parameters for the
             creation of the correct task type.
         language (string|None): the language of the submission / user
             test.
@@ -108,8 +111,6 @@ class Job(object):
             operation = {}
         if task_type is None:
             task_type = ""
-        if task_type_parameters is None:
-            task_type_parameters = []
         if sandboxes is None:
             sandboxes = []
         if info is None:
@@ -151,11 +152,11 @@ class Job(object):
             'success': self.success,
             'text': self.text,
             'files': dict((k, v.digest)
-                          for k, v in self.files.iteritems()),
+                          for k, v in iteritems(self.files)),
             'managers': dict((k, v.digest)
-                             for k, v in self.managers.iteritems()),
+                             for k, v in iteritems(self.managers)),
             'executables': dict((k, v.digest)
-                                for k, v in self.executables.iteritems()),
+                                for k, v in iteritems(self.executables)),
             }
         return res
 
@@ -275,11 +276,11 @@ class CompilationJob(Job):
     @classmethod
     def import_from_dict(cls, data):
         data['files'] = dict(
-            (k, File(k, v)) for k, v in data['files'].iteritems())
+            (k, File(k, v)) for k, v in iteritems(data['files']))
         data['managers'] = dict(
-            (k, Manager(k, v)) for k, v in data['managers'].iteritems())
+            (k, Manager(k, v)) for k, v in iteritems(data['managers']))
         data['executables'] = dict(
-            (k, Executable(k, v)) for k, v in data['executables'].iteritems())
+            (k, Executable(k, v)) for k, v in iteritems(data['executables']))
         return cls(**data)
 
     @staticmethod
@@ -328,7 +329,7 @@ class CompilationJob(Job):
         # only if it is True.
 
         sr.set_compilation_outcome(self.compilation_success)
-        sr.compilation_text = json.dumps(self.text, encoding='utf-8')
+        sr.compilation_text = self.text
         sr.compilation_stdout = self.plus.get('stdout')
         sr.compilation_stderr = self.plus.get('stderr')
         sr.compilation_time = self.plus.get('execution_time')
@@ -337,7 +338,7 @@ class CompilationJob(Job):
         sr.compilation_memory = self.plus.get('execution_memory')
         sr.compilation_shard = self.shard
         sr.compilation_sandbox = ":".join(self.sandboxes)
-        for executable in self.executables.itervalues():
+        for executable in itervalues(self.executables):
             sr.executables.set(executable)
 
     @staticmethod
@@ -403,7 +404,7 @@ class CompilationJob(Job):
         # only if it is True.
 
         ur.set_compilation_outcome(self.compilation_success)
-        ur.compilation_text = json.dumps(self.text, encoding='utf-8')
+        ur.compilation_text = self.text
         ur.compilation_stdout = self.plus.get('stdout')
         ur.compilation_stderr = self.plus.get('stderr')
         ur.compilation_time = self.plus.get('execution_time')
@@ -412,7 +413,7 @@ class CompilationJob(Job):
         ur.compilation_memory = self.plus.get('execution_memory')
         ur.compilation_shard = self.shard
         ur.compilation_sandbox = ":".join(self.sandboxes)
-        for executable in self.executables.itervalues():
+        for executable in itervalues(self.executables):
             u_executable = UserTestExecutable(
                 executable.filename, executable.digest)
             ur.executables.set(u_executable)
@@ -496,11 +497,11 @@ class EvaluationJob(Job):
     @classmethod
     def import_from_dict(cls, data):
         data['files'] = dict(
-            (k, File(k, v)) for k, v in data['files'].iteritems())
+            (k, File(k, v)) for k, v in iteritems(data['files']))
         data['managers'] = dict(
-            (k, Manager(k, v)) for k, v in data['managers'].iteritems())
+            (k, Manager(k, v)) for k, v in iteritems(data['managers']))
         data['executables'] = dict(
-            (k, Executable(k, v)) for k, v in data['executables'].iteritems())
+            (k, Executable(k, v)) for k, v in iteritems(data['executables']))
         return cls(**data)
 
     @staticmethod
@@ -560,7 +561,7 @@ class EvaluationJob(Job):
         # only if it is True.
 
         sr.evaluations += [Evaluation(
-            text=json.dumps(self.text, encoding='utf-8'),
+            text=self.text,
             outcome=self.outcome,
             execution_time=self.plus.get('execution_time'),
             execution_wall_clock_time=self.plus.get(
@@ -643,7 +644,7 @@ class EvaluationJob(Job):
         # No need to check self.success because this method gets called
         # only if it is True.
 
-        ur.evaluation_text = json.dumps(self.text, encoding='utf-8')
+        ur.evaluation_text = self.text
         ur.set_evaluation_outcome()
         ur.execution_time = self.plus.get('execution_time')
         ur.execution_wall_clock_time = \

@@ -21,8 +21,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import argparse
 import io
@@ -166,7 +169,7 @@ def main():
         "-n", "--dry-run", action="store_true",
         help="show what tests would be run, but do not run them")
     parser.add_argument(
-        "-v", "--verbose", action="count",
+        "-v", "--verbose", action="count", default=0,
         help="print debug information (use multiple times for more)")
     args = parser.parse_args()
 

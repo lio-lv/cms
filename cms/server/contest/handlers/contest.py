@@ -31,8 +31,12 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iterkeys, iteritems
 
 import ipaddress
 import logging
@@ -77,7 +81,7 @@ def check_ip(address, networks):
 
     """
     try:
-        address = ipaddress.ip_address(unicode(address))
+        address = ipaddress.ip_address(str(address))
     except ValueError:
         return False
 
@@ -209,7 +213,7 @@ class ContestHandler(BaseHandler):
             # We encode it as a network (i.e., we assign it a /32 or
             # /128 mask) since we're comparing it for equality with
             # other networks.
-            remote_ip = ipaddress.ip_network(unicode(self.request.remote_ip))
+            remote_ip = ipaddress.ip_network(str(self.request.remote_ip))
         except ValueError:
             return None
         participations = self.sql_session.query(Participation)\
@@ -294,7 +298,7 @@ class ContestHandler(BaseHandler):
 
     def get_user_locale(self):
         self.langs = self.application.service.langs
-        lang_codes = self.langs.keys()
+        lang_codes = list(iterkeys(self.langs))
 
         if self.contest.allowed_localizations:
             lang_codes = filter_language_codes(
@@ -391,11 +395,11 @@ class ContestHandler(BaseHandler):
         ret["lang_names"] = {}
 
         # Get language codes for allowed localizations
-        lang_codes = self.langs.keys()
+        lang_codes = list(iterkeys(self.langs))
         if len(self.contest.allowed_localizations) > 0:
             lang_codes = filter_language_codes(
                 lang_codes, self.contest.allowed_localizations)
-        for lang_code, trans in self.langs.iteritems():
+        for lang_code, trans in iteritems(self.langs):
             language_name = None
             # Filter lang_codes with allowed localizations
             if lang_code not in lang_codes:

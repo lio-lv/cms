@@ -23,8 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iteritems
 
 import errno
 import io
@@ -235,7 +239,7 @@ class Config(object):
         del data["other_services"]
 
         # Put everything else in self.
-        for key, value in data.iteritems():
+        for key, value in iteritems(data):
             setattr(self, key, value)
 
         return True

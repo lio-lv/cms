@@ -22,8 +22,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import itervalues
 
 import atexit
 import errno
@@ -37,7 +41,7 @@ import subprocess
 import sys
 import threading
 import time
-from urlparse import urlsplit
+from future.moves.urllib.parse import urlsplit
 
 from cmstestsuite import CONFIG, FrameworkException, get_cms_config
 
@@ -70,8 +74,8 @@ class RemoteService(object):
             "__id": "foo",
             "__method": function_name,
             "__data": data,
-        })
-        msg = s + "\r\n"
+        }).encode('utf-8')
+        msg = s + b"\r\n"
 
         # Send message.
         sock = socket.socket()
@@ -79,14 +83,14 @@ class RemoteService(object):
         sock.send(msg)
 
         # Wait for response.
-        s = ''
-        while len(s) < 2 or s[-2:] != "\r\n":
+        s = b''
+        while len(s) < 2 or s[-2:] != b"\r\n":
             s += sock.recv(1)
         s = s[:-2]
         sock.close()
 
         # Decode reply.
-        reply = json.loads(s)
+        reply = json.loads(s.decode('utf-8'))
 
         return reply
 
@@ -249,7 +253,7 @@ class ProgramStarter(object):
         self._programs[(service_name, shard, contest)] = p
 
     def count_unhealthy(self):
-        return len([p for p in self._programs.itervalues() if not p.healthy])
+        return len([p for p in itervalues(self._programs) if not p.healthy])
 
     def wait(self):
         attempts = 0
@@ -264,7 +268,7 @@ class ProgramStarter(object):
         raise FrameworkException(
             "Failed to bring up services: %s" %
             ", ".join("%s/%s" % (p.service_name, p.shard)
-                      for p in self._programs.itervalues() if not p.healthy))
+                      for p in itervalues(self._programs) if not p.healthy))
 
     def restart(self, service_name, shard=0, contest=None):
         p = self._programs[(service_name, shard, contest)]
@@ -277,5 +281,5 @@ class ProgramStarter(object):
         del self._programs[(service_name, shard, contest)]
 
     def stop_all(self):
-        for p in self._programs.itervalues():
+        for p in itervalues(self._programs):
             p.stop()

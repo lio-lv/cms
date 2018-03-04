@@ -28,8 +28,12 @@ af2338b9a22df8a19671c7fee78d9dc4b35c49ea.
 """
 
 from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iteritems
 
 import json
 
@@ -110,7 +114,7 @@ class Updater(object):
         self.objs = data
 
     def run(self):
-        for k, v in self.objs.iteritems():
+        for k, v iteritems(in self.objs):
             if k.startswith("_"):
                 continue
 

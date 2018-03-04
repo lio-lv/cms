@@ -32,12 +32,16 @@ task.
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iterkeys
 
-import json
 import logging
 import re
+from abc import ABCMeta, abstractmethod
 
 from tornado.template import Template
 
@@ -57,6 +61,9 @@ class ScoreType(object):
     defined here.
 
     """
+
+    __metaclass__ = ABCMeta
+
     TEMPLATE = ""
 
     def __init__(self, parameters, public_testcases):
@@ -104,23 +111,21 @@ class ScoreType(object):
         """Return an HTML string representing the score details of a
         submission.
 
-        score_details (unicode): the data saved by the score type
+        score_details (object): the data saved by the score type
             itself in the database; can be public or private.
         _ (function): translation function.
 
         return (string): an HTML string representing score_details.
 
         """
-        try:
-            score_details = json.loads(score_details)
-        except (TypeError, ValueError):
-            # TypeError raised if score_details is None
-            logger.error("Found a null or non-JSON score details string. "
+        if score_details is None:
+            logger.error("Found a null score details string. "
                          "Try invalidating scores.")
             return _("Score details temporarily unavailable.")
         else:
             return Template(self.TEMPLATE).generate(details=score_details, _=_)
 
+    @abstractmethod
     def max_scores(self):
         """Returns the maximum score that one could aim to in this
         problem. Also return the maximum score from the point of view
@@ -132,25 +137,24 @@ class ScoreType(object):
             score with only public testcases; ranking headers.
 
         """
-        logger.error("Unimplemented method max_scores.")
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def compute_score(self, unused_submission_result):
         """Computes a score of a single submission.
 
         unused_submission_result (SubmissionResult): the submission
             result of which we want the score
 
-        returns (float, str, float, str, [str]): respectively: the
-            score, the opaque data with additional information (e.g.
-            testcases' and subtasks' score) that will be converted to
-            HTML by get_html_details, and the same information from the
-            point of view of a user that did not play a token, the list
-            of strings to send to RWS.
+        return (float, object, float, object, [str]): respectively: the
+            score, an opaque JSON-like data structure with additional
+            information (e.g. testcases' and subtasks' score) that will
+            be converted to HTML by get_html_details, the score and a
+            similar data structure from the point of view of a user who
+            did not play a token, the list of strings to send to RWS.
 
         """
-        logger.error("Unimplemented method compute_score.")
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
 
 class ScoreTypeAlone(ScoreType):
@@ -290,7 +294,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
         if all(isinstance(t, int) for t in t_params):
 
             # XXX Lexicographical order by codename
-            indices = sorted(self.public_testcases.keys())
+            indices = sorted(iterkeys(self.public_testcases))
             current = 0
             targets = []
 
@@ -301,9 +305,9 @@ class ScoreTypeGroup(ScoreTypeAlone):
 
             return targets
 
-        elif all(isinstance(t, unicode) for t in t_params):
+        elif all(isinstance(t, str) for t in t_params):
 
-            indices = sorted(self.public_testcases.keys())
+            indices = sorted(iterkeys(self.public_testcases))
             targets = []
 
             for t in t_params:
@@ -341,7 +345,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
         """See ScoreType.compute_score."""
         # Actually, this means it didn't even compile!
         if not submission_result.evaluated():
-            return 0.0, "[]", 0.0, "[]", ["%lg" % 0.0 for _ in self.parameters]
+            return 0.0, [], 0.0, [], ["%lg" % 0.0 for _ in self.parameters]
 
         targets = self.retrieve_target_testcases()
         evaluations = dict((ev.codename, ev)
@@ -397,10 +401,9 @@ class ScoreTypeGroup(ScoreTypeAlone):
                            for st in public_subtasks
                            if "score" in st)
 
-        return score, json.dumps(subtasks), \
-            public_score, json.dumps(public_subtasks), \
-            ranking_details
+        return score, subtasks, public_score, public_subtasks, ranking_details
 
+    @abstractmethod
     def get_public_outcome(self, unused_outcome, unused_parameter):
         """Return a public outcome from an outcome.
 
@@ -416,9 +419,9 @@ class ScoreTypeGroup(ScoreTypeAlone):
         return (float): the public output.
 
         """
-        logger.error("Unimplemented method get_public_outcome.")
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def reduce(self, unused_outcomes, unused_parameter):
         """Return the score of a subtask given the outcomes.
 
@@ -429,5 +432,4 @@ class ScoreTypeGroup(ScoreTypeAlone):
         return (float): the public output.
 
         """
-        logger.error("Unimplemented method reduce.")
-        raise NotImplementedError("Please subclass this class.")
+        pass

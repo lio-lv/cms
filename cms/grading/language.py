@@ -20,11 +20,15 @@
 """Interfaces for supported programming languages."""
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import logging
 import os
+from abc import ABCMeta, abstractmethod
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +37,10 @@ logger = logging.getLogger(__name__)
 class Language(object):
     """A supported programming language"""
 
+    __metaclass__ = ABCMeta
+
     @property
+    @abstractmethod
     def name(self):
         """Returns the name of the language.
 
@@ -44,7 +51,7 @@ class Language(object):
         return (str): the name
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
     @property
     def source_extensions(self):
@@ -101,6 +108,7 @@ class Language(object):
         return self.object_extensions[0] \
             if len(self.object_extensions) > 0 else None
 
+    @abstractmethod
     def get_compilation_commands(self,
                                  source_filenames, executable_filename,
                                  for_evaluation=True):
@@ -124,8 +132,9 @@ class Language(object):
             strings to be passed to subprocess.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def get_evaluation_commands(
             self, executable_filename, main=None, args=None):
         """Return the evaluation commands.
@@ -140,7 +149,7 @@ class Language(object):
             strings to be passed to subprocess.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
 
 class CompiledLanguage(Language):

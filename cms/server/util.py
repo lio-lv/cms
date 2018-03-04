@@ -28,13 +28,16 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import time
 import logging
 from datetime import datetime, timedelta
-from urllib import quote, urlencode
+from future.moves.urllib.parse import quote, urlencode
 
 from functools import wraps
 from tornado.web import RequestHandler
@@ -254,7 +257,7 @@ def actual_phase_required(*actual_phases):
 
 
 UNITS = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
-DIMS = list(1024 ** x for x in xrange(9))
+DIMS = list(1024 ** x for x in range(9))
 
 
 def format_size(n, _=lambda s: s):
@@ -273,7 +276,7 @@ def format_size(n, _=lambda s: s):
         unit_index = next(i for i, x in enumerate(DIMS) if n < x) - 1
     except StopIteration:
         unit_index = -1
-    n = float(n) / DIMS[unit_index]
+    n = n / DIMS[unit_index]
 
     if n < 10:
         d = 2
@@ -631,7 +634,7 @@ def file_handler_gen(BaseClass):
         """
         def fetch(self, digest, content_type, filename):
             """Send a file from FileCacher by its digest."""
-            if digest == "":
+            if len(digest) == 0:
                 logger.error("No digest given")
                 self.finish()
                 return
@@ -682,7 +685,7 @@ def file_handler_gen(BaseClass):
             """
             data = self.temp_file.read(FileCacher.CHUNK_SIZE)
             length = len(data)
-            self.size += length / 1024.0 / 1024.0
+            self.size += length / (1024 * 1024)
             self.write(data)
             if length < FileCacher.CHUNK_SIZE:
                 self.temp_file.close()
@@ -767,6 +770,29 @@ class CommonRequestHandler(RequestHandler):
         self.sql_session = Session()
         self.sql_session.expire_all()
         self.url = create_url_builder(get_url_root(self.request.path))
+
+    def finish(self, *args, **kwargs):
+        """Finish this response, ending the HTTP request.
+
+        We override this method in order to properly close the database.
+
+        TODO - Now that we have greenlet support, this method could be
+        refactored in terms of context manager or something like
+        that. So far I'm leaving it to minimize changes.
+
+        """
+        if self.sql_session is not None:
+            try:
+                self.sql_session.close()
+            except Exception as error:
+                logger.warning("Couldn't close SQL connection: %r", error)
+        try:
+            super(CommonRequestHandler, self).finish(*args, **kwargs)
+        except IOError:
+            # When the client closes the connection before we reply,
+            # Tornado raises an IOError exception, that would pollute
+            # our log with unnecessarily critical messages
+            logger.debug("Connection closed before our reply.")
 
     @property
     def service(self):

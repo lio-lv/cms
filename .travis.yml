@@ -1,15 +1,15 @@
 dist: trusty
 sudo: required
 
-# FIXME: The following travis setting would automatically use a virtualenv,
-#        and CMS would think it is not installed, see this github issue:
-#        https://github.com/cms-dev/cms/issues/559
-#        (while it stays commented out, travis will think we're using ruby)
-#        when the issue is fixed, we will be able to take advantage of
-#        multi-version testing (testing against many python versions)
-#language: python
-#python:
-#  - 2.7
+language: python
+python:
+  - 2.7
+
+# Use the PostgreSQL version that is provided in Ubuntu 16.04.
+# We need at least version 9.4 as that is the one that introduced the
+# JSONB type. By default Ubuntu 14.04 comes with version 9.3.
+addons:
+  postgresql: "9.5"
 
 install:
   - sudo apt-get update -qq
@@ -17,6 +17,7 @@ install:
   - sudo apt-get install -y fp-compiler fp-units-base fp-units-fcl fp-units-misc fp-units-math fp-units-rtl
   - sudo apt-get install -y postgresql-client gettext python2.7 iso-codes shared-mime-info stl-manual cgroup-lite libcap-dev
   - sudo apt-get install -y python-dev libpq-dev libcups2-dev libyaml-dev wget
+  - sudo apt-get install -y mono-mcs
 
   - wget "https://static.rust-lang.org/dist/rust-1.15.1-x86_64-unknown-linux-gnu.tar.gz"
   - tar xf rust-1.15.1-x86_64-unknown-linux-gnu.tar.gz
@@ -24,11 +25,11 @@ install:
   - sudo ./install.sh --prefix=/usr
   - popd
 
-  - cp ./config/cms.conf.sample ./config/cms.conf
-  - sudo ./prerequisites.py install -y
-
   - sudo pip install -r requirements.txt
   - sudo pip install -r dev-requirements.txt
+
+  - cp ./config/cms.conf.sample ./config/cms.conf
+  - sudo ./prerequisites.py install -y
   - sudo python setup.py install
 
   - psql --username=postgres --command="CREATE USER cmsuser WITH PASSWORD 'your_password_here';"

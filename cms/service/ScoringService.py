@@ -5,7 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2013-2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2013-2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
@@ -27,10 +27,12 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
-import json
 import logging
 
 from cms import ServiceCoord, config
@@ -107,10 +109,8 @@ class ScoringExecutor(Executor):
                 submission_result.score_details, \
                 submission_result.public_score, \
                 submission_result.public_score_details, \
-                ranking_score_details = \
+                submission_result.ranking_score_details = \
                 score_type.compute_score(submission_result)
-            submission_result.ranking_score_details = \
-                json.dumps(ranking_score_details)
 
             # Store it.
             session.commit()

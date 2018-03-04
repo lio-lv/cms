@@ -5,7 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2012-2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
@@ -28,10 +28,13 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import itervalues
 
-import json
 import logging
 import traceback
 
@@ -80,9 +83,9 @@ class AddTaskHandler(SimpleHandler("add_task.html", permission_all=True)):
             attrs["description"] = "Default"
             attrs["autojudge"] = True
             attrs["task_type"] = "Batch"
-            attrs["task_type_parameters"] = '["alone", ["", ""], "diff"]'
+            attrs["task_type_parameters"] = ["alone", ["", ""], "diff"]
             attrs["score_type"] = "Sum"
-            attrs["score_type_parameters"] = '100'
+            attrs["score_type_parameters"] = 100
             attrs["task"] = task
             dataset = Dataset(**attrs)
             self.sql_session.add(dataset)
@@ -115,11 +118,7 @@ class TaskHandler(BaseHandler):
 
         self.r_params = self.render_params()
         self.r_params["task"] = task
-        try:
-            self.r_params["primary_statements"] = \
-                json.loads(task.primary_statements)
-        except ValueError:
-            self.r_params["primary_statements"] = []
+        self.r_params["primary_statements"] = task.primary_statements
         self.r_params["submissions"] = \
             self.sql_session.query(Submission)\
                 .join(Task).filter(Task.id == task_id)\
@@ -144,7 +143,7 @@ class TaskHandler(BaseHandler):
             for statement in task.statements:
                 self.get_bool(primary_statements,
                               "primary_statement_%s" % statement)
-            attrs["primary_statements"] = json.dumps(sorted([
+            attrs["primary_statements"] = list(sorted([
                 k.replace("primary_statement_", "", 1)
                 for k in primary_statements
                 if primary_statements[k]
@@ -198,7 +197,7 @@ class TaskHandler(BaseHandler):
                 self.redirect(self.url("task", task_id))
                 return
 
-            for testcase in dataset.testcases.itervalues():
+            for testcase in itervalues(dataset.testcases):
                 testcase.public = bool(self.get_argument(
                     "testcase_%s_public" % testcase.id, False))
 
@@ -228,7 +227,7 @@ class AddStatementHandler(BaseHandler):
         task = self.safe_get_item(Task, task_id)
 
         language = self.get_argument("language", "")
-        if language == "":
+        if len(language) == 0:
             self.application.service.add_notification(
                 make_datetime(),
                 "No language code specified",

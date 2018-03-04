@@ -20,10 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
-import json
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iterkeys, itervalues
 
 from cms.grading.ScoreType import ScoreTypeAlone
 
@@ -100,7 +102,7 @@ class Sum(ScoreTypeAlone):
         """See ScoreType.max_score."""
         public_score = 0.0
         score = 0.0
-        for public in self.public_testcases.itervalues():
+        for public in itervalues(self.public_testcases):
             if public:
                 public_score += self.parameters
             score += self.parameters
@@ -110,10 +112,10 @@ class Sum(ScoreTypeAlone):
         """See ScoreType.compute_score."""
         # Actually, this means it didn't even compile!
         if not submission_result.evaluated():
-            return 0.0, "[]", 0.0, "[]", []
+            return 0.0, [], 0.0, [], []
 
         # XXX Lexicographical order by codename
-        indices = sorted(self.public_testcases.keys())
+        indices = sorted(iterkeys(self.public_testcases))
         evaluations = dict((ev.codename, ev)
                            for ev in submission_result.evaluations)
         testcases = []
@@ -138,9 +140,7 @@ class Sum(ScoreTypeAlone):
             else:
                 public_testcases.append({"idx": idx})
 
-        return score, json.dumps(testcases), \
-            public_score, json.dumps(public_testcases), \
-            []
+        return score, testcases, public_score, public_testcases, []
 
     def get_public_outcome(self, outcome):
         """Return a public outcome from an outcome.

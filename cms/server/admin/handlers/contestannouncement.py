@@ -28,8 +28,11 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import tornado.web
 
@@ -49,7 +52,7 @@ class AddAnnouncementHandler(BaseHandler):
 
         subject = self.get_argument("subject", "")
         text = self.get_argument("text", "")
-        if subject != "":
+        if len(subject) > 0:
             ann = Announcement(make_datetime(), subject, text,
                                contest=self.contest)
             self.sql_session.add(ann)

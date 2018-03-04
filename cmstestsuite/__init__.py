@@ -24,8 +24,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iterkeys, iteritems
 
 import io
 import json
@@ -154,7 +158,7 @@ def configure_cms(options):
                  "rt", encoding="utf-8") as in_f:
         lines = in_f.readlines()
 
-    unset = set(options.keys())
+    unset = set(iterkeys(options))
     for i, line in enumerate(lines):
         g = re.match(r'^(\s*)"([^"]+)":', line)
         if g:
@@ -169,7 +173,7 @@ def configure_cms(options):
 
     if unset:
         print("These configuration items were not set:")
-        print("  " + ", ".join(sorted(list(unset))))
+        print("  " + ", ".join(sorted(unset)))
 
     # Load the config database.
     read_cms_config()
@@ -279,7 +283,7 @@ def add_task(**kwargs):
         task_id = int(match_task_id.group(1))
         dataset_id = int(match_dataset_id.group(1))
         edit_args = {}
-        for k, v in kwargs.iteritems():
+        for k, v in iteritems(kwargs):
             edit_args[k.replace("{{dataset_id}}", str(dataset_id))] = v
         r = admin_req('task/%s' % task_id, args=edit_args)
         created_tasks[task_id] = kwargs

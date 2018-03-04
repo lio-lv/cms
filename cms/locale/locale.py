@@ -30,8 +30,13 @@
 """
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
+from six import iteritems
+import six
 
 import pkg_resources
 import gettext
@@ -100,7 +105,7 @@ def get_translations():
                 with io.open(mo_file_path, "rb") as mo_file:
                     result[lang_code] = gettext.GNUTranslations(mo_file)
 
-    for lang_code, trans in result.iteritems():
+    for lang_code, trans in iteritems(result):
         for sys_trans in get_system_translations(lang_code):
             trans.add_fallback(sys_trans)
 
@@ -119,13 +124,20 @@ def wrap_translations_for_tornado(trans):
         tornado.locale.GettextLocale
 
     """
+    if six.PY3:
+        gettext = trans.gettext
+        ngettext = trans.ngettext
+    else:
+        gettext = trans.ugettext
+        ngettext = trans.ungettext
+
     # Add translate method
     def translate(message, plural_message=None, count=None):
         if plural_message is not None:
             assert count is not None
-            return trans.ungettext(message, plural_message, count)
+            return ngettext(message, plural_message, count)
         else:
-            return trans.ugettext(message)
+            return gettext(message)
     trans.translate = translate
 
     # Add a "dummy" pgettext method (that ignores the context)

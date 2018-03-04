@@ -22,8 +22,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.builtins.disabled import *
+from future.builtins import *
 
 import argparse
 import chardet
@@ -34,8 +37,6 @@ import os
 import sys
 import grp
 from collections import namedtuple
-
-import six
 
 import gevent.socket
 
@@ -81,9 +82,9 @@ def utf8_decoder(value):
     raise (TypeError): if value isn't a string.
 
     """
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
         return value
-    elif isinstance(value, six.binary_type):
+    elif isinstance(value, bytes):
         try:
             return value.decode("utf-8")
         except UnicodeDecodeError:
@@ -326,8 +327,8 @@ def _get_shard_from_addresses(service, addrs):
                 res_ipv4_addrs = set([x[4][0] for x in
                                       gevent.socket.getaddrinfo(
                                           host, port,
-                                          family=gevent.socket.AF_INET,
-                                          socktype=gevent.socket.SOCK_STREAM)])
+                                          gevent.socket.AF_INET,
+                                          gevent.socket.SOCK_STREAM)])
             except (gevent.socket.gaierror, gevent.socket.error):
                 res_ipv4_addrs = set()
 
@@ -335,8 +336,8 @@ def _get_shard_from_addresses(service, addrs):
                 res_ipv6_addrs = set([x[4][0] for x in
                                       gevent.socket.getaddrinfo(
                                           host, port,
-                                          family=gevent.socket.AF_INET6,
-                                          socktype=gevent.socket.SOCK_STREAM)])
+                                          gevent.socket.AF_INET6,
+                                          gevent.socket.SOCK_STREAM)])
             except (gevent.socket.gaierror, gevent.socket.error):
                 res_ipv6_addrs = set()
 
