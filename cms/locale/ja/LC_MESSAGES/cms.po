@@ -191,48 +191,11 @@ msgstr "コンパイル不要"
 msgid "File not submitted"
 msgstr "ファイル未提出"
 
-msgid "%Y-%m-%d"
-msgstr "%Y-%m-%d"
-
-msgid "%H:%M:%S"
-msgstr "%H:%M:%S"
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr "%Y-%m-%d %H:%M:%S"
-
 msgid "loading..."
 msgstr "読み込み中…"
 
 msgid "unknown"
 msgstr "不明"
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] "%d 秒"
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d 分"
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d 時間"
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] "%d 日"
-
-#, python-format
-msgid "%s and %s"
-msgstr "%s と %s"
-
-#, python-format
-msgid "more than %s"
-msgstr "%s と少し"
 
 msgid "contest-token"
 msgstr "コンテストトークン"
@@ -523,12 +486,8 @@ msgid "Executed"
 msgstr "実行完了"
 
 #, python-format
-msgid "{seconds:0.3f} s"
-msgstr "{seconds:0.3f} 秒"
-
-#, python-format
-msgid "Automatic (%s)"
-msgstr "自動 (%s)"
+msgid "Automatic (%(lang)s)"
+msgstr "自動 (%(lang)s)"
 
 msgid "Logout"
 msgstr "ログアウト"
@@ -667,8 +626,8 @@ msgid "Submission details for evaluation"
 msgstr "実行・評価メッセージの詳細"
 
 #, python-format
-msgid "Error %d"
-msgstr "エラー %d"
+msgid "Error %(status_code)s"
+msgstr "エラー %(status_code)s"
 
 msgid "An error occured while the server was handling your request."
 msgstr "サーバーがあなたの要求を処理している途中でエラーが発生しました。"
@@ -837,18 +796,6 @@ msgstr "ファイル"
 msgid "Tokens"
 msgstr "トークン"
 
-#, python-format
-msgid "{seconds:g} second"
-msgstr "{seconds:g} 秒"
-
-#, python-format
-msgid "{seconds:g} seconds"
-msgstr "{seconds:g} 秒"
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr "%(mb)d MiB"
-
 msgid "Yes"
 msgstr "はい"
 
@@ -860,18 +807,18 @@ msgstr "印刷"
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text or PDF files of up to "
-"%(max_pages)d pages each."
+"You can print %(remaining_jobs)s more text or PDF files of up to "
+"%(max_pages)s pages each."
 msgstr ""
-"あなたは %(max_pages)d ページ以下のテキストまたはPDFファイルをあと "
-"%(remaining_jobs)d 回印刷できます。"
+"あなたは %(max_pages)s ページ以下のテキストまたはPDFファイルをあと "
+"%(remaining_jobs)s 回印刷できます。"
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text files of up to %(max_pages)d "
+"You can print %(remaining_jobs)s more text files of up to %(max_pages)s "
 "pages each."
 msgstr ""
-"あなたは %(max_pages)d ページ以下のテキストファイルをあと %(remaining_jobs)d "
+"あなたは %(max_pages)s ページ以下のテキストファイルをあと %(remaining_jobs)s "
 "回印刷できます。"
 
 msgid "File (text or PDF)"
@@ -971,20 +918,20 @@ msgid "Some suggested translations follow."
 msgstr "推奨された翻訳が以下にあります。"
 
 #, python-format
-msgid "Statement in <b>%s</b>"
-msgstr "問題文 (<b>%s</b>)"
+msgid "Statement in <b>%(lang)s</b>"
+msgstr "問題文 (<b>%(lang)s</b>)"
 
 #, python-format
-msgid "Statement in %s"
-msgstr "問題文 (%s)"
+msgid "Statement in %(lang)s"
+msgstr "問題文 (%(lang)s)"
 
 #, python-format
-msgid "<b>%s</b>"
-msgstr "<b>%s</b>"
+msgid "<b>%(lang)s</b>"
+msgstr "<b>%(lang)s</b>"
 
 #, python-format
-msgid "%s"
-msgstr "%s"
+msgid "%(lang)s"
+msgstr "%(lang)s"
 
 msgid "Some details"
 msgstr "詳細"
@@ -1001,7 +948,7 @@ msgstr ""
 "ページ</a>を参照してください。"
 
 msgid ""
-"Remeber that to see the detailed result of a submission you need to use both "
+"Remember that to see the detailed result of a submission you need to use both "
 "a contest-token and a task-token."
 msgstr ""
 "提出に対する詳細な結果を見るためには、コンテストトークンと課題トークンの両方"

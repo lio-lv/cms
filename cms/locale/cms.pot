@@ -18,10 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#. translators: decimal mark in fractions (e.g., in "3.14")
-msgid "."
-msgstr ""
-
 msgid "Compilation succeeded"
 msgstr ""
 
@@ -175,51 +171,10 @@ msgstr ""
 msgid "File not submitted"
 msgstr ""
 
-msgid "%Y-%m-%d"
-msgstr ""
-
-msgid "%H:%M:%S"
-msgstr ""
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr ""
-
 msgid "loading..."
 msgstr ""
 
 msgid "unknown"
-msgstr ""
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "%s and %s"
-msgstr ""
-
-#, python-format
-msgid "more than %s"
 msgstr ""
 
 msgid "contest-token"
@@ -507,10 +462,6 @@ msgstr ""
 msgid "Executed"
 msgstr ""
 
-#, python-brace-format
-msgid "{seconds:0.3f} s"
-msgstr ""
-
 msgid "Communication"
 msgstr ""
 
@@ -542,7 +493,7 @@ msgid "Messages"
 msgstr ""
 
 #, python-format
-msgid "Automatic (%s)"
+msgid "Automatic (%(lang)s)"
 msgstr ""
 
 msgid "Logout"
@@ -654,7 +605,7 @@ msgid "Submission details for evaluation"
 msgstr ""
 
 #, python-format
-msgid "Error %d"
+msgid "Error %(status_code)s"
 msgstr ""
 
 msgid "An error occured while the server was handling your request."
@@ -822,18 +773,6 @@ msgstr ""
 msgid "Tokens"
 msgstr ""
 
-#, python-brace-format
-msgid "{seconds:g} second"
-msgstr ""
-
-#, python-brace-format
-msgid "{seconds:g} seconds"
-msgstr ""
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr ""
-
 msgid "Yes"
 msgstr ""
 
@@ -845,13 +784,13 @@ msgstr ""
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text or PDF files of up to "
-"%(max_pages)d pages each."
+"You can print %(remaining_jobs)s more text or PDF files of up to "
+"%(max_pages)s pages each."
 msgstr ""
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text files of up to %(max_pages)d "
+"You can print %(remaining_jobs)s more text files of up to %(max_pages)s "
 "pages each."
 msgstr ""
 
@@ -947,19 +886,19 @@ msgid "Some suggested translations follow."
 msgstr ""
 
 #, python-format
-msgid "Statement in <b>%s</b>"
+msgid "Statement in <b>%(lang)s</b>"
 msgstr ""
 
 #, python-format
-msgid "Statement in %s"
+msgid "Statement in %(lang)s"
 msgstr ""
 
 #, python-format
-msgid "<b>%s</b>"
+msgid "<b>%(lang)s</b>"
 msgstr ""
 
 #, python-format
-msgid "%s"
+msgid "%(lang)s"
 msgstr ""
 
 msgid "Some details"
@@ -975,7 +914,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Remeber that to see the detailed result of a submission you need to use both "
+"Remember that to see the detailed result of a submission you need to use both "
 "a contest-token and a task-token."
 msgstr ""
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -26,8 +26,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys
 
 import logging
@@ -87,7 +87,7 @@ class AddAdminHandler(SimpleHandler("add_admin.html", permission_all=True)):
             self.sql_session.add(admin)
 
         except Exception as error:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 make_datetime(), "Invalid field(s)", repr(error))
             self.redirect(fallback_page)
             return
@@ -140,7 +140,7 @@ class AdminHandler(BaseHandler):
             new_attrs = _admin_attrs(self)
 
         except Exception as error:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 make_datetime(), "Invalid field(s)", repr(error))
             self.redirect(self.url("admin", admin_id))
             return

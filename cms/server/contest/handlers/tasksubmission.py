@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -34,8 +34,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys, itervalues, iteritems
 
 import io
@@ -75,7 +75,7 @@ class SubmitHandler(ContestHandler):
     def _send_error(self, subject, text):
         """Shorthand for sending a notification and redirecting."""
         logger.warning("Sent error: `%s' - `%s'", subject, text)
-        self.application.service.add_notification(
+        self.service.add_notification(
             self.current_user.user.username,
             self.timestamp,
             subject,
@@ -126,8 +126,7 @@ class SubmitHandler(ContestHandler):
                                "at most %d submissions on this task.") %
                         task.max_submission_number)
         except ValueError as error:
-            self._send_error(
-                self._("Too many submissions!"), error.message)
+            self._send_error(self._("Too many submissions!"), str(error))
             return
 
         # Enforce minimum time between submissions
@@ -165,8 +164,7 @@ class SubmitHandler(ContestHandler):
                                "after %d seconds from last submission.") %
                         task.min_submission_interval.total_seconds())
         except ValueError as error:
-            self._send_error(
-                self._("Submissions too frequent!"), error.message)
+            self._send_error(self._("Submissions too frequent!"), str(error))
             return
 
         # Required files from the user.
@@ -309,7 +307,7 @@ class SubmitHandler(ContestHandler):
         # We now have to send all the files to the destination...
         try:
             for filename in files:
-                digest = self.application.service.file_cacher.put_file_content(
+                digest = self.service.file_cacher.put_file_content(
                     files[filename][1],
                     "Submission file %s sent by %s at %d." % (
                         filename, participation.user.username,
@@ -342,9 +340,9 @@ class SubmitHandler(ContestHandler):
             self.sql_session.add(File(filename, digest, submission=submission))
         self.sql_session.add(submission)
         self.sql_session.commit()
-        self.application.service.evaluation_service.new_submission(
+        self.service.evaluation_service.new_submission(
             submission_id=submission.id)
-        self.application.service.add_notification(
+        self.service.add_notification(
             participation.user.username,
             self.timestamp,
             self._("Submission received"),
@@ -413,6 +411,7 @@ class TaskSubmissionsHandler(ContestHandler):
                     submissions_left=submissions_left,
                     submissions_download_allowed=
                         self.contest.submissions_download_allowed,
+                    SubmissionResult=SubmissionResult,
                     **self.r_params)
 
 
@@ -470,7 +469,8 @@ class SubmissionStatusHandler(ContestHandler):
                     round(sr.public_score, task.score_precision)
                 data["public_score_message"] = score_type.format_score(
                     sr.public_score, score_type.max_public_score,
-                    sr.public_score_details, task.score_precision, self._)
+                    sr.public_score_details, task.score_precision,
+                    translation=self.translation)
             if submission.token is not None:
                 data["max_score"] = \
                     round(score_type.max_score, task.score_precision)
@@ -478,7 +478,8 @@ class SubmissionStatusHandler(ContestHandler):
                     round(sr.score, task.score_precision)
                 data["score_message"] = score_type.format_score(
                     sr.score, score_type.max_score,
-                    sr.score_details, task.score_precision, self._)
+                    sr.score_details, task.score_precision,
+                    translation=self.translation)
 
         self.write(data)
 
@@ -518,13 +519,13 @@ class SubmissionDetailsHandler(ContestHandler):
                 details = sr.public_score_details
 
             if sr.scored():
-                details = score_type.get_html_details(details, self._)
+                details = score_type.get_html_details(
+                    details, translation=self.translation)
             else:
                 details = None
 
-        self.render("submission_details.html",
-                    sr=sr,
-                    details=details)
+        self.render("submission_details.html", sr=sr, details=details,
+                    **self.r_params)
 
 
 class SubmissionFileHandler(FileHandler):
@@ -616,7 +617,7 @@ class UseTokenHandler(ContestHandler):
             logger.warning("User %s tried to play a token when they "
                            "shouldn't.", participation.user.username)
             # Add "no luck" notification
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("Token request discarded"),
@@ -631,7 +632,7 @@ class UseTokenHandler(ContestHandler):
             self.sql_session.add(token)
             self.sql_session.commit()
         else:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("Token request discarded"),
@@ -643,14 +644,14 @@ class UseTokenHandler(ContestHandler):
 
         # Inform ProxyService and eventually the ranking that the
         # token has been played.
-        self.application.service.proxy_service.submission_tokened(
+        self.service.proxy_service.submission_tokened(
             submission_id=submission.id)
 
         logger.info("Token played by user %s on task %s.",
                     participation.user.username, task.name)
 
         # Add "All ok" notification.
-        self.application.service.add_notification(
+        self.service.add_notification(
             participation.user.username,
             self.timestamp,
             self._("Token request received"),

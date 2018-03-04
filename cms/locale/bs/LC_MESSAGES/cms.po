@@ -256,57 +256,8 @@ msgstr "Izvršavam..."
 msgid "Executed"
 msgstr "Izvršeno"
 
-#, python-format
-msgid "{seconds:0.3f} s"
-msgstr "{seconds:0.3f} s"
-
-msgid "%Y-%m-%d"
-msgstr "%Y-%m-%d"
-
-msgid "%H:%M:%S"
-msgstr "%H:%M:%S"
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr "%Y-%m-%d %H:%M:%S"
-
 msgid "loading..."
 msgstr "učitavam..."
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] "%d sekunda"
-msgstr[1] "%d sekunde"
-msgstr[2] "%d sekundi"
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d minuta"
-msgstr[1] "%d minute"
-msgstr[2] "%d minuta"
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d sat"
-msgstr[1] "%d sata"
-msgstr[2] "%d sati"
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] "%d dan"
-msgstr[1] "%d dana"
-msgstr[2] "%d dana"
-
-#, python-format
-msgid "%s and %s"
-msgstr "%s i %s"
-
-#, python-format
-msgid "more than %s"
-msgstr "više od %s"
 
 msgid "contest-token"
 msgstr "contest-token"
@@ -409,8 +360,8 @@ msgid "You have no limitations on how you use them."
 msgstr "Nemate ograničenja na njihovu upotrebu."
 
 #, python-format
-msgid "Automatic (%s)"
-msgstr "Automatski (%s)"
+msgid "Automatic (%(lang)s)"
+msgstr "Automatski (%(lang)s)"
 
 #, python-format
 msgid "Logged in as <strong>%(first_name)s %(last_name)s</strong> <em>(%(username)s)</em>"
@@ -520,8 +471,8 @@ msgid "Standard Template Library"
 msgstr "Standard Template Library"
 
 #, python-format
-msgid "Error %d"
-msgstr "Greška %d"
+msgid "Error %(status_code)s"
+msgstr "Greška %(status_code)s"
 
 msgid "An error occured while the server was handling your request."
 msgstr "Došlo je do greške prilikom obrade vašeg zahtjeva od strane servera."
@@ -638,18 +589,6 @@ msgstr "Datoteke"
 msgid "Tokens"
 msgstr "Tokeni"
 
-#, python-format
-msgid "{seconds:g} second"
-msgstr "{seconds:g} sekundi"
-
-#, python-format
-msgid "{seconds:g} seconds"
-msgstr "{seconds:g} sekundi"
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr "%(mb)d MiB"
-
 msgid "Yes"
 msgstr "Da"
 
@@ -712,20 +651,20 @@ msgid "Some suggested translations follow."
 msgstr "Ispod su neki predloženi prevodi."
 
 #, python-format
-msgid "Statement in <b>%s</b>"
-msgstr "Specifikacija u <b>%s</b>"
+msgid "Statement in <b>%(lang)s</b>"
+msgstr "Specifikacija u <b>%(lang)s</b>"
 
 #, python-format
-msgid "Statement in %s"
-msgstr "Specifikacija u %s"
+msgid "Statement in %(lang)s"
+msgstr "Specifikacija u %(lang)s"
 
 #, python-format
-msgid "<b>%s</b>"
-msgstr "<b>%s</b>"
+msgid "<b>%(lang)s</b>"
+msgstr "<b>%(lang)s</b>"
 
 #, python-format
-msgid "%s"
-msgstr "%s"
+msgid "%(lang)s"
+msgstr "%(lang)s"
 
 msgid "Some details"
 msgstr "Neki detalji"
@@ -737,7 +676,7 @@ msgstr "Naredbe kompajlera"
 msgid "You can find the rules for the %(type_pl)s on the <a href=\"%(contest_root)s/\">contest overview page</a>."
 msgstr "Možete pronaći pravila za %(type_pl)s na <a href=\"%(contest_root)s/\">stranici pregleda takmičenja</a>."
 
-msgid "Remeber that to see the detailed result of a submission you need to use both a contest-token and a task-token."
+msgid "Remember that to see the detailed result of a submission you need to use both a contest-token and a task-token."
 msgstr "Zapamtite da ne možete vidjeti detaljan rezultat prijave osim ako iskoristite i contest-token i task-token."
 
 msgid "Attachments"

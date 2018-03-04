@@ -11,6 +11,8 @@
     "_help": "Whether to have a backdoor (see doc for the risks).",
     "backdoor": false,
 
+    "_help": "The user/group that CMS will be run as.",
+    "cmsuser": "cmsuser",
 
 
     "_section": "AsyncLibrary",
@@ -42,7 +44,7 @@
     "_section": "Database",
 
     "_help": "Connection string for the database.",
-    "database": "postgresql+psycopg2://cmsuser:your_password_here@localhost/cmsdb",
+    "database": "postgresql+psycopg2://cmsuser:your_password_here@localhost:5432/cmsdb",
 
     "_help": "Whether SQLAlchemy prints DB queries on stdout.",
     "database_debug": false,
@@ -117,7 +119,7 @@
     "max_input_length": 5000000,
 
     "_help": "STL documentation path in the system (exposed in CWS).",
-    "stl_path": "/usr/share/doc/stl-manual/html/",
+    "stl_path": "/usr/share/cppreference/doc/html/",
 
 
 

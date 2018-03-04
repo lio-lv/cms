@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -33,8 +33,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import itervalues
 
 import logging
@@ -42,9 +42,6 @@ import logging
 import tornado.web
 
 from cms.server import actual_phase_required, multi_contest
-from cmscommon.isocodes import is_language_code, translate_language_code, \
-    is_country_code, translate_country_code, \
-    is_language_country_code, translate_language_country_code
 from cmscommon.mimetypes import get_type_for_file_name
 
 from .contest import ContestHandler, FileHandler
@@ -67,18 +64,8 @@ class TaskDescriptionHandler(ContestHandler):
             raise tornado.web.HTTPError(404)
 
         for statement in itervalues(task.statements):
-            lang_code = statement.language
-            if is_language_country_code(lang_code):
-                statement.language_name = \
-                    translate_language_country_code(lang_code, self.locale)
-            elif is_language_code(lang_code):
-                statement.language_name = \
-                    translate_language_code(lang_code, self.locale)
-            elif is_country_code(lang_code):
-                statement.language_name = \
-                    translate_country_code(lang_code, self.locale)
-            else:
-                statement.language_name = lang_code
+            statement.language_name = \
+                self.translation.format_locale(statement.language)
 
         self.r_params["primary_statements"] = task.primary_statements
 

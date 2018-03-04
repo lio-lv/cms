@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -34,8 +34,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
+from six import with_metaclass
 
 import logging
 import re
@@ -52,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 ## Sandbox lifecycle. ##
 
-def create_sandbox(file_cacher, multithreaded=False):
+def create_sandbox(file_cacher, multithreaded=False, name=None):
     """Create a sandbox, and return it.
 
     file_cacher (FileCacher): a file cacher instance.
@@ -64,7 +65,7 @@ def create_sandbox(file_cacher, multithreaded=False):
 
     """
     try:
-        sandbox = Sandbox(multithreaded, file_cacher)
+        sandbox = Sandbox(multithreaded, file_cacher, name=name)
     except (OSError, IOError):
         err_msg = "Couldn't create sandbox."
         logger.error(err_msg, exc_info=True)
@@ -92,7 +93,7 @@ def delete_sandbox(sandbox, success=True):
             logger.warning(err_msg, exc_info=True)
 
 
-class TaskType(object):
+class TaskType(with_metaclass(ABCMeta, object)):
     """Base class with common operation that (more or less) all task
     types must do sometimes.
 
@@ -108,8 +109,6 @@ class TaskType(object):
       operations; must be overloaded.
 
     """
-
-    __metaclass__ = ABCMeta
 
     # If ALLOW_PARTIAL_SUBMISSION is True, then we allow the user to
     # submit only some of the required files; moreover, we try to fill
@@ -140,7 +139,7 @@ class TaskType(object):
                 new_parameters.append(new_value)
             except ValueError as error:
                 raise ValueError("Invalid parameter %s: %s."
-                                 % (parameter.name, error.message))
+                                 % (parameter.name, error))
         return new_parameters
 
     def __init__(self, parameters):
@@ -153,6 +152,27 @@ class TaskType(object):
 
         """
         self.parameters = parameters
+        self.validate_parameters()
+
+    def validate_parameters(self):
+        """Validate the parameters syntactically.
+
+        raise (ValueError): if the parameters are malformed.
+
+        """
+        if not isinstance(self.parameters, list):
+            raise ValueError(
+                "Task type parameters for %s are not a list" % self.__class__)
+
+        if len(self.parameters) != len(self.ACCEPTED_PARAMETERS):
+            raise ValueError(
+                "Task type %s should have %s parameters, received %s" %
+                (self.__class__,
+                 len(self.ACCEPTED_PARAMETERS),
+                 len(self.parameters)))
+
+        for value, parameter in zip(self.parameters, self.ACCEPTED_PARAMETERS):
+            parameter.validate(value)
 
     @property
     def name(self):
@@ -168,6 +188,8 @@ class TaskType(object):
         return re.sub("([A-Z])", r" \g<1>",
                       self.__class__.__name__).strip().capitalize()
 
+    # Whether user tests are enabled for task of this type (provided they are
+    # enabled in the contest).
     testable = True
 
     @abstractmethod

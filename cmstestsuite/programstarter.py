@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -25,8 +25,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import itervalues
 
 import atexit
@@ -38,12 +38,13 @@ import os
 import signal
 import socket
 import subprocess
-import sys
 import threading
 import time
 from future.moves.urllib.parse import urlsplit
 
-from cmstestsuite import CONFIG, FrameworkException, get_cms_config
+from cmscommon.datetime import monotonic_time
+from cmstestsuite import CONFIG, TestException, coverage_cmdline
+from cmstestsuite.functionaltestframework import FunctionalTestFramework
 
 
 logger = logging.getLogger(__name__)
@@ -60,8 +61,8 @@ class RemoteService(object):
     trigger bugs in the CMS services.
 
     """
-    def __init__(self, service_name, shard):
-        address, port = get_cms_config()["core_services"][service_name][shard]
+    def __init__(self, cms_config, service_name, shard):
+        address, port = cms_config["core_services"][service_name][shard]
 
         self.service_name = service_name
         self.shard = shard
@@ -98,10 +99,8 @@ class RemoteService(object):
 class Program(object):
     """An instance of a program, which might be running or not."""
 
-    _COVERAGE_CMDLINE = \
-        [sys.executable, "-m", "coverage", "run", "-p", "--source=cms"]
-
-    def __init__(self, service_name, shard=0, contest=None):
+    def __init__(self, cms_config, service_name, shard=0, contest=None):
+        self.cms_config = cms_config
         self.service_name = service_name
         self.shard = shard
         self.contest = contest
@@ -139,15 +138,23 @@ class Program(object):
             # Try to terminate gracefully (RWS does not have a way to do it).
             logger.info("Asking %s/%s to terminate...",
                         self.service_name, self.shard)
-            rs = RemoteService(self.service_name, self.shard)
+            rs = RemoteService(self.cms_config, self.service_name, self.shard)
             rs.call("quit", {"reason": "from test harness"})
 
         # If it didn't understand, use bad manners.
         self._check()
         if self.healthy:
-            logger.info("Killing %s/%s.", self.service_name, self.shard)
-            os.kill(self.instance.pid, signal.SIGINT)
-            self.instance.wait()
+            logger.info("Interrupting %s/%s.", self.service_name, self.shard)
+            self.instance.send_signal(signal.SIGINT)
+            # FIXME on py3 this becomes self.instance.wait(timeout=5)
+            t = monotonic_time()
+            while monotonic_time() - t < 5:
+                if self.instance.poll() is not None:
+                    break
+                time.sleep(0.1)
+            else:
+                logger.info("Killing %s/%s.", self.service_name, self.shard)
+                self.instance.kill()
 
     def _check_with_backoff(self):
         """Check and wait that the service is healthy."""
@@ -162,13 +169,13 @@ class Program(object):
                 return
 
         # Service did not start.
-        raise FrameworkException("Failed to bring up service %s/%s" %
-                                 (self.service_name, self.shard))
+        raise TestException("Failed to bring up service %s/%s" %
+                            (self.service_name, self.shard))
 
     def _check(self):
         """Check that the program is healthy and set the healthy bit.
 
-        raise (FrameworkException): when the state is weird, critical.
+        raise (TestException): when the state is weird, critical.
 
         """
         try:
@@ -179,22 +186,22 @@ class Program(object):
         except socket.error as error:
             self.healthy = False
             if error.errno != errno.ECONNREFUSED:
-                raise FrameworkException("Weird connection state.")
+                raise TestException("Weird connection state.")
         else:
             self.healthy = True
 
     def _check_service(self):
         """Health checker for services and servers."""
-        rs = RemoteService(self.service_name, self.shard)
+        rs = RemoteService(self.cms_config, self.service_name, self.shard)
         reply = rs.call("echo", {"string": "hello"})
         if reply["__data"] != "hello":
-            raise FrameworkException("Strange response from service.")
+            raise TestException("Strange response from service.")
 
         # In case it is a server, we also check HTTP is serving.
         if self.service_name == "AdminWebServer":
-            port = get_cms_config()["admin_listen_port"]
+            port = self.cms_config["admin_listen_port"]
         elif self.service_name == "ContestWebServer":
-            port = get_cms_config()["contest_listen_port"][self.shard]
+            port = self.cms_config["contest_listen_port"][self.shard]
         else:
             return
 
@@ -204,7 +211,7 @@ class Program(object):
 
     def _check_ranking_web_server(self):
         """Health checker for RWS."""
-        url = urlsplit(get_cms_config()["rankings"][0])
+        url = urlsplit(self.cms_config["rankings"][0])
         sock = socket.socket()
         sock.connect((url.hostname, url.port))
         sock.close()
@@ -220,10 +227,10 @@ class Program(object):
                 pass
 
         if CONFIG["VERBOSITY"] >= 1:
-            logger.info("$" + " ".join(cmdline))
+            logger.info("$ %s", " ".join(cmdline))
 
-        if CONFIG["TEST_DIR"] is not None and CONFIG.get("COVERAGE"):
-            cmdline = Program._COVERAGE_CMDLINE + cmdline
+        if CONFIG["TEST_DIR"] is not None:
+            cmdline = coverage_cmdline(cmdline)
 
         if CONFIG["VERBOSITY"] >= 3:
             stdout = None
@@ -240,6 +247,9 @@ class ProgramStarter(object):
     """Utility to keep track of all programs started."""
 
     def __init__(self):
+        self.framework = FunctionalTestFramework()
+        self.cms_config = self.framework.get_cms_config()
+
         # Map of arguments to Program instances.
         self._programs = {}
 
@@ -248,7 +258,7 @@ class ProgramStarter(object):
 
     def start(self, service_name, shard=0, contest=None):
         """Start a CMS service."""
-        p = Program(service_name, shard, contest)
+        p = Program(self.cms_config, service_name, shard, contest)
         p.start()
         self._programs[(service_name, shard, contest)] = p
 
@@ -265,7 +275,7 @@ class ProgramStarter(object):
                 return
             logger.info("Still %s unhealthy.", unhealthy)
             time.sleep(0.2 * (1.2 ** attempts))
-        raise FrameworkException(
+        raise TestException(
             "Failed to bring up services: %s" %
             ", ".join("%s/%s" % (p.service_name, p.shard)
                       for p in itervalues(self._programs) if not p.healthy))

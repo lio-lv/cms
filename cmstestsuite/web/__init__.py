@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -26,17 +26,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import itervalues, iteritems
 
 import datetime
 import io
-import os
 import sys
 import time
 import traceback
-import urllib
 
 import requests
 
@@ -79,6 +77,7 @@ class Browser(object):
                 data['_xsrf'] = self.xsrf_token
                 response = self.session.post(url, data)
         else:
+            file_objs = {}
             try:
                 data = data.copy()
                 data['_xsrf'] = self.xsrf_token
@@ -112,7 +111,8 @@ class GenericRequest(object):
         self.start_time = None
         self.stop_time = None
         self.duration = None
-        self.exception_data = None
+        self.exc_value = None
+        self.exc_traceback = None
 
         self.url = None
         self.data = None
@@ -149,7 +149,8 @@ class GenericRequest(object):
 
         # Catch possible exceptions
         except Exception as exc:
-            self.exception_data = traceback.format_exc()
+            self.exc_value = exc
+            self.exc_traceback = traceback.format_exc()
             self.outcome = GenericRequest.OUTCOME_ERROR
 
         else:
@@ -163,7 +164,8 @@ class GenericRequest(object):
         try:
             success = self.test_success()
         except Exception as exc:
-            self.exception_data = traceback.format_exc()
+            self.exc_value = exc
+            self.exc_traceback = traceback.format_exc()
             self.outcome = GenericRequest.OUTCOME_ERROR
 
         # If no exceptions were casted, decode the test evaluation
@@ -188,14 +190,12 @@ class GenericRequest(object):
                 if debug:
                     print("Request '%s' failed" % (description),
                           file=sys.stderr)
-                    if self.exception_data is not None:
-                        print(self.exception_data, file=sys.stderr)
                 self.outcome = GenericRequest.OUTCOME_FAILURE
 
         # Otherwise report the exception
         else:
             print("Request '%s' terminated with an exception: %s\n%s" %
-                  (description, repr(exc), self.exception_data),
+                  (description, self.exc_value, self.exc_traceback),
                   file=sys.stderr)
 
     def test_success(self):
@@ -241,10 +241,10 @@ class GenericRequest(object):
         print("Duration: %f seconds" % (self.duration), file=fd)
         print("Outcome: %s" % (self.outcome), file=fd)
         fd.write(self.specific_info())
-        if self.exception_data is not None:
+        if self.exc_traceback is not None:
             print("", file=fd)
             print("EXCEPTION CASTED", file=fd)
-            fd.write(str(self.exception_data))
+            fd.write(str(self.exc_traceback))
 
 
 class LoginRequest(GenericRequest):

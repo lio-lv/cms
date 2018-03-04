@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -24,8 +24,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys, itervalues
 
 import functools
@@ -266,8 +266,8 @@ class RemoteServiceBase(object):
                 self._writer.write(data + b'\r\n')
                 self._writer.flush()
         except socket.error as error:
-            logger.warning("Failed writing to socket: %s.", error)
             self.finalize("Write failed.")
+            logger.warning("Failed writing to socket: %s.", error)
             raise error
 
 

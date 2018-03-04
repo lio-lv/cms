@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -28,8 +28,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 
 import io
 import logging
@@ -42,6 +42,7 @@ from sqlalchemy.orm import joinedload
 from cms import SCORE_MODE_MAX, config
 from cms.db import Submission
 from cms.grading.Sandbox import Sandbox
+from cms.locale import DEFAULT_TRANSLATION
 
 from .language import Language, CompiledLanguage
 
@@ -214,7 +215,7 @@ class JobException(Exception):
         return "JobException(\"%s\")" % (repr(self.msg))
 
 
-def format_status_text(status, translator=None):
+def format_status_text(status, translation=DEFAULT_TRANSLATION):
     """Format the given status text in the given locale.
 
     A status text is the content of SubmissionResult.compilation_text,
@@ -227,29 +228,22 @@ def format_status_text(status, translator=None):
     returned.
 
     status ([unicode]): a status, as described above.
-    translator (function|None): a function expecting a string and
-        returning that same string translated in some language, or
-        None to apply the identity.
+    translation (Translation): the translation to use.
 
     """
-    # Mark strings for localization.
-    N_("N/A")
-
-    if translator is None:
-        translator = lambda x: x
+    _ = translation.gettext
 
     try:
         if not isinstance(status, list):
             raise TypeError("Invalid type: %r" % type(status))
 
-        # translator('') gives, for some reason, the first lines of
-        # the po file.
-        text = translator(status[0]) if status[0] != '' else ''
+        # The empty msgid corresponds to the headers of the pofile.
+        text = _(status[0]) if status[0] != '' else ''
         return text % tuple(status[1:])
     except:
         logger.error("Unexpected error when formatting status "
                      "text: %r", status, exc_info=True)
-        return translator("N/A")
+        return _("N/A")
 
 
 def compilation_step(sandbox, commands):
@@ -559,6 +553,10 @@ def evaluation_step_after_run(sandbox):
 def merge_evaluation_results(plus0, plus1):
     """Merges two evaluation results provided by different sandboxes.
 
+    The logic is to sum execution time and memory, but take the maximum of the
+    wall clock time; for status, to take the first non-ok status, if it exists,
+    otherwise use ok.
+
     """
     plus = plus0.copy()
     plus["execution_time"] += plus1["execution_time"]
@@ -690,7 +688,7 @@ def extract_outcome_and_text(sandbox):
 # We take as definition of whitespaces the intersection between ASCII
 # and Unicode White_Space characters (see
 # http://www.unicode.org/Public/6.3.0/ucd/PropList.txt)
-WHITES = [b' ', b'\t', b'\n', b'\x0b', b'\x0c' b'\r']
+WHITES = [b' ', b'\t', b'\n', b'\x0b', b'\x0c', b'\r']
 
 
 def white_diff_canonicalize(string):

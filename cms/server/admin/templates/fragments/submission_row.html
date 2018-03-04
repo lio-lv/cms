@@ -54,7 +54,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for idx, ev in enumerate(zip(*sorted((ev.codename, ev) for ev in sr.evaluations))[1], start=1) %}
+            {% for idx, ev in enumerate(sorted(sr.evaluations, key=lambda ev: ev.codename), start=1) %}
             <tr>
               <td>{{ idx }}</td>
               <td>{{ ev.codename }}</td>
@@ -78,7 +78,7 @@
       Scored ({{ sr.score }} / {{ max_score }})
       <div id="evaluation_{{ s.id }}" class="score_details" style="display: none;">
         {% try %}
-          {% raw score_type.get_html_details(sr.score_details, _) %}
+          {% raw score_type.get_html_details(sr.score_details) %}
         {% except %}
         [Cannot get score type - see logs]
         {% end %}

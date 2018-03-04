@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -35,17 +35,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
-from six import iterkeys
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
+from six import iterkeys, with_metaclass
 
 import logging
 import re
 from abc import ABCMeta, abstractmethod
 
-from tornado.template import Template
-
-from cms.locale import locale_format
+from cms.locale import DEFAULT_TRANSLATION
+from cms.server.jinja2_toolbox import GLOBAL_ENVIRONMENT
 
 
 logger = logging.getLogger(__name__)
@@ -56,13 +55,11 @@ def N_(message):
     return message
 
 
-class ScoreType(object):
+class ScoreType(with_metaclass(ABCMeta, object)):
     """Base class for all score types, that must implement all methods
     defined here.
 
     """
-
-    __metaclass__ = ABCMeta
 
     TEMPLATE = ""
 
@@ -82,9 +79,11 @@ class ScoreType(object):
         self.max_score, self.max_public_score, self.ranking_headers = \
             self.max_scores()
 
+        self.template = GLOBAL_ENVIRONMENT.from_string(self.TEMPLATE)
+
     @staticmethod
     def format_score(score, max_score, unused_score_details,
-                     score_precision, _=lambda s: s):
+                     score_precision, translation=DEFAULT_TRANSLATION):
         """Produce the string of the score that is shown in CWS.
 
         In the submission table in the task page of CWS the global
@@ -99,31 +98,38 @@ class ScoreType(object):
             the ScoreType produced for the submission when scoring it.
         score_precision (int): the maximum number of digits of the
             fractional digits to show.
-        _ (function): translation function.
+        translation (Translation): the translation to use.
 
         return (string): the message to show.
 
         """
-        return locale_format(_, "{0:g} / {1:g}",
-            round(score, score_precision), round(max_score, score_precision))
+        return "%s / %s" % (
+            translation.format_decimal(round(score, score_precision)),
+            translation.format_decimal(round(max_score, score_precision)))
 
-    def get_html_details(self, score_details, _=lambda s: s):
+    def get_html_details(self, score_details, translation=DEFAULT_TRANSLATION):
         """Return an HTML string representing the score details of a
         submission.
 
         score_details (object): the data saved by the score type
             itself in the database; can be public or private.
-        _ (function): translation function.
+        translation (Translation): the translation to use.
 
         return (string): an HTML string representing score_details.
 
         """
+        _ = translation.gettext
+        n_ = translation.ngettext
         if score_details is None:
             logger.error("Found a null score details string. "
                          "Try invalidating scores.")
             return _("Score details temporarily unavailable.")
         else:
-            return Template(self.TEMPLATE).generate(details=score_details, _=_)
+            # FIXME we should provide to the template all the variables
+            # of a typical CWS context as it's entitled to expect them.
+            return self.template.render(details=score_details,
+                                        translation=translation,
+                                        gettext=_, ngettext=n_)
 
     @abstractmethod
     def max_scores(self):
@@ -184,17 +190,14 @@ class ScoreTypeGroup(ScoreTypeAlone):
 
     """
     # Mark strings for localization.
-    N_("Subtask %d")
+    N_("Subtask %(index)s")
+    N_("#")
     N_("Outcome")
     N_("Details")
     N_("Execution time")
     N_("Memory used")
     N_("N/A")
     TEMPLATE = """\
-{% from cms.grading import format_status_text %}
-{% from cms.server import format_size %}
-{% from cms.locale import locale_format %}
-{% set idx = 0 %}
 {% for st in details %}
     {% if "score" in st and "max_score" in st %}
         {% if st["score"] >= st["max_score"] %}
@@ -203,38 +206,48 @@ class ScoreTypeGroup(ScoreTypeAlone):
 <div class="subtask notcorrect">
         {% else %}
 <div class="subtask partiallycorrect">
-        {% end %}
+        {% endif %}
     {% else %}
 <div class="subtask undefined">
-    {% end %}
+    {% endif %}
     <div class="subtask-head">
         <span class="title">
-            {{ _("Subtask %d") % st["idx"] }}
+            {% trans index=st["idx"] %}Subtask {{ index }}{% endtrans %}
         </span>
     {% if "score" in st and "max_score" in st %}
         <span class="score">
-            ({{ locale_format(_, "{0:g} / {1:g}", round(st["score"], 2), st["max_score"]) }})
+            ({{ st["score"]|round(2)|format_decimal }}
+             / {{ st["max_score"]|format_decimal }})
         </span>
     {% else %}
         <span class="score">
-            ({{ _("N/A") }})
+            ({% trans %}N/A{% endtrans %})
         </span>
-    {% end %}
+    {% endif %}
     </div>
     <div class="subtask-body">
         <table class="testcase-list">
             <thead>
                 <tr>
-                    <th class="idx">{{ _("#") }}</th>
-                    <th class="outcome">{{ _("Outcome") }}</th>
-                    <th class="details">{{ _("Details") }}</th>
-                    <th class="execution-time">{{ _("Execution time") }}</th>
-                    <th class="memory-used">{{ _("Memory used") }}</th>
+                    <th class="idx">
+                        {% trans %}#{% endtrans %}
+                    </th>
+                    <th class="outcome">
+                        {% trans %}Outcome{% endtrans %}
+                    </th>
+                    <th class="details">
+                        {% trans %}Details{% endtrans %}
+                    </th>
+                    <th class="execution-time">
+                        {% trans %}Execution time{% endtrans %}
+                    </th>
+                    <th class="memory-used">
+                        {% trans %}Memory used{% endtrans %}
+                    </th>
                 </tr>
             </thead>
             <tbody>
     {% for tc in st["testcases"] %}
-        {% set idx = idx + 1 %}
         {% if "outcome" in tc and "text" in tc %}
             {% if tc["outcome"] == "Correct" %}
                 <tr class="correct">
@@ -242,40 +255,40 @@ class ScoreTypeGroup(ScoreTypeAlone):
                 <tr class="notcorrect">
             {% else %}
                 <tr class="partiallycorrect">
-            {% end %}
-                    <td class="idx">{{ idx }}</td>
+            {% endif %}
+                    <td class="idx">{{ loop.index }}</td>
                     <td class="outcome">{{ _(tc["outcome"]) }}</td>
                     <td class="details">
-                      {{ format_status_text(tc["text"], _) }}
+                      {{ tc["text"]|format_status_text }}
                     </td>
                     <td class="execution-time">
-            {% if "time" in tc and tc["time"] is not None %}
-                        {{ locale_format(_, _("{seconds:0.3f} s"), seconds=tc["time"]) }}
+            {% if "time" in tc and tc["time"] is not none %}
+                        {{ tc["time"]|format_duration }}
             {% else %}
-                        {{ _("N/A") }}
-            {% end %}
+                        {% trans %}N/A{% endtrans %}
+            {% endif %}
                     </td>
                     <td class="memory-used">
-            {% if "memory" in tc and tc["memory"] is not None %}
-                        {{ format_size(tc["memory"], _) }}
+            {% if "memory" in tc and tc["memory"] is not none %}
+                        {{ tc["memory"]|format_size }}
             {% else %}
-                        {{ _("N/A") }}
-            {% end %}
+                        {% trans %}N/A{% endtrans %}
+            {% endif %}
                     </td>
                 </tr>
         {% else %}
                 <tr class="undefined">
                     <td colspan="5">
-                        {{ _("N/A") }}
+                        {% trans %}N/A{% endtrans %}
                     </td>
                 </tr>
-        {% end %}
-    {% end %}
+        {% endif %}
+    {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% end %}"""
+{% endfor %}"""
 
     def retrieve_target_testcases(self):
         """Return the list of the target testcases for each subtask.

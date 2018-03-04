@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -31,8 +31,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import itervalues
 
 from datetime import datetime, timedelta
@@ -43,9 +43,10 @@ from sqlalchemy.types import Integer, Unicode, DateTime, Interval, Enum, \
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import ARRAY
 
-from . import Base, CodenameConstraint
-
 from cmscommon.datetime import make_datetime
+from cms import TOKEN_MODE_DISABLED, TOKEN_MODE_FINITE, TOKEN_MODE_INFINITE
+
+from . import Base, CodenameConstraint
 
 
 class Contest(Base):
@@ -148,7 +149,8 @@ class Contest(Base):
     #   contest instead.
     # - infinite: The user will always be able to use a token.
     token_mode = Column(
-        Enum("disabled", "finite", "infinite", name="token_mode"),
+        Enum(TOKEN_MODE_DISABLED, TOKEN_MODE_FINITE, TOKEN_MODE_INFINITE,
+             name="token_mode"),
         nullable=False,
         default="infinite")
 
@@ -198,7 +200,7 @@ class Contest(Base):
     stop = Column(
         DateTime,
         nullable=False,
-        default=datetime(2100, 1, 1))
+        default=datetime(2030, 1, 1))
 
     # Beginning and ending of the contest anaylsis mode.
     analysis_enabled = Column(
@@ -208,11 +210,11 @@ class Contest(Base):
     analysis_start = Column(
         DateTime,
         nullable=False,
-        default=datetime(2100, 1, 1))
+        default=datetime(2030, 1, 1))
     analysis_stop = Column(
         DateTime,
         nullable=False,
-        default=datetime(2100, 1, 1))
+        default=datetime(2030, 1, 1))
 
     # Timezone for the contest. All timestamps in CWS will be shown
     # using the timezone associated to the logged-in user or (if it's

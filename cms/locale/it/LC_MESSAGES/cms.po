@@ -19,10 +19,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#. translators: decimal mark in fractions (e.g., in "3.14")
-msgid "."
-msgstr ","
-
 msgid "Compilation succeeded"
 msgstr "Compilazione eseguita con successo"
 
@@ -206,52 +202,11 @@ msgstr "Compilazione non necessaria"
 msgid "File not submitted"
 msgstr "File non sottoposto"
 
-msgid "%Y-%m-%d"
-msgstr "%d/%m/%Y"
-
-msgid "%H:%M:%S"
-msgstr "%H:%M:%S"
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr "%H:%M:%S %d/%m/%Y"
-
 msgid "loading..."
 msgstr "caricamento in corso..."
 
 msgid "unknown"
 msgstr "sconosciuto"
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] "%d secondo"
-msgstr[1] "%d secondi"
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d minuto"
-msgstr[1] "%d minuti"
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d ora"
-msgstr[1] "%d ore"
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] "%d giorno"
-msgstr[1] "%d giorni"
-
-#, python-format
-msgid "%s and %s"
-msgstr "%s e %s"
-
-#, python-format
-msgid "more than %s"
-msgstr "più di %s"
 
 msgid "contest-token"
 msgstr "contest-token"
@@ -546,10 +501,6 @@ msgstr "Esecuzione in corso..."
 msgid "Executed"
 msgstr "Eseguito"
 
-#, python-brace-format
-msgid "{seconds:0.3f} s"
-msgstr "{seconds:0.3f} s"
-
 msgid "Communication"
 msgstr "Comunicazioni"
 
@@ -581,8 +532,8 @@ msgid "Messages"
 msgstr "Messaggi"
 
 #, python-format
-msgid "Automatic (%s)"
-msgstr "Automatica (%s)"
+msgid "Automatic (%(lang)s)"
+msgstr "Automatica (%(lang)s)"
 
 msgid "Logout"
 msgstr "Logout"
@@ -699,8 +650,8 @@ msgid "Submission details for evaluation"
 msgstr "Dettagli della valutazione della sottoposizione"
 
 #, python-format
-msgid "Error %d"
-msgstr "Errore %d"
+msgid "Error %(status_code)s"
+msgstr "Errore %(status_code)s"
 
 msgid "An error occured while the server was handling your request."
 msgstr ""
@@ -904,18 +855,6 @@ msgstr "File"
 msgid "Tokens"
 msgstr "Token"
 
-#, python-brace-format
-msgid "{seconds:g} second"
-msgstr "{seconds:g} secondo"
-
-#, python-brace-format
-msgid "{seconds:g} seconds"
-msgstr "{seconds:g} secondi"
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr "%(mb)d MiB"
-
 msgid "Yes"
 msgstr "Sì"
 
@@ -927,19 +866,19 @@ msgstr "Stampa"
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text or PDF files of up to "
-"%(max_pages)d pages each."
+"You can print %(remaining_jobs)s more text or PDF files of up to "
+"%(max_pages)s pages each."
 msgstr ""
-"Puoi stampare altri %(remaining_jobs)d file PDF, ognuno con al massimo "
-"%(max_pages)d pagine."
+"Puoi stampare altri %(remaining_jobs)s file PDF, ognuno con al massimo "
+"%(max_pages)s pagine."
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text files of up to %(max_pages)d "
+"You can print %(remaining_jobs)s more text files of up to %(max_pages)s "
 "pages each."
 msgstr ""
-"Puoi stampare altri %(remaining_jobs)d file di testo, ognuno con al massimo "
-"%(max_pages)d pagine."
+"Puoi stampare altri %(remaining_jobs)s file di testo, ognuno con al massimo "
+"%(max_pages)s pagine."
 
 msgid "File (text or PDF)"
 msgstr "File (testo o PDF)"
@@ -1035,20 +974,20 @@ msgid "Some suggested translations follow."
 msgstr "Seguono alcuni testi suggeriti."
 
 #, python-format
-msgid "Statement in <b>%s</b>"
-msgstr "Testo in <b>%s</b>"
+msgid "Statement in <b>%(lang)s</b>"
+msgstr "Testo in <b>%(lang)s</b>"
 
 #, python-format
-msgid "Statement in %s"
-msgstr "Testo in %s"
+msgid "Statement in %(lang)s"
+msgstr "Testo in %(lang)s"
 
 #, python-format
-msgid "<b>%s</b>"
-msgstr "<b>%s</b>"
+msgid "<b>%(lang)s</b>"
+msgstr "<b>%(lang)s</b>"
 
 #, python-format
-msgid "%s"
-msgstr "%s"
+msgid "%(lang)s"
+msgstr "%(lang)s"
 
 msgid "Some details"
 msgstr "Alcuni dettagli"
@@ -1065,7 +1004,7 @@ msgstr ""
 "\">pagina di panormica della gara</a>."
 
 msgid ""
-"Remeber that to see the detailed result of a submission you need to use both "
+"Remember that to see the detailed result of a submission you need to use both "
 "a contest-token and a task-token."
 msgstr ""
 "Ricorda che per vedere i risultati dettagliati di una sottoposizione devi "

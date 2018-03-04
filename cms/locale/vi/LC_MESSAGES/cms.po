@@ -184,52 +184,11 @@ msgstr "Không cần biên dịch"
 msgid "File not submitted"
 msgstr "File chưa được nộp"
 
-msgid "%Y-%m-%d"
-msgstr "%d-%m-%Y"
-
-msgid "%H:%M:%S"
-msgstr "%H:%M:%S"
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr "%H:%M:%S %d-%m-%Y"
-
 msgid "loading..."
 msgstr "đang tải..."
 
 msgid "unknown"
 msgstr "không xác định"
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] "%d giây"
-msgstr[1] "%d giây"
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d phút"
-msgstr[1] "%d phút"
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d giờ"
-msgstr[1] "%d giờ"
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] "%d ngày"
-msgstr[1] "%d ngày"
-
-#, python-format
-msgid "%s and %s"
-msgstr "%s và %s"
-
-#, python-format
-msgid "more than %s"
-msgstr "nhiều hơn %s"
 
 msgid "contest-token"
 msgstr "contest-token"
@@ -521,12 +480,8 @@ msgid "Executed"
 msgstr "Đã chạy xong"
 
 #, python-format
-msgid "{seconds:0.3f} s"
-msgstr "{seconds:0.3f} giây"
-
-#, python-format
-msgid "Automatic (%s)"
-msgstr "Tự động (%s)"
+msgid "Automatic (%(lang)s)"
+msgstr "Tự động (%(lang)s)"
 
 msgid "Logout"
 msgstr "Đăng xuất"
@@ -664,8 +619,8 @@ msgid "Submission details for evaluation"
 msgstr "Chi tiết chấm bài nộp"
 
 #, python-format
-msgid "Error %d"
-msgstr "Lỗi %d"
+msgid "Error %(status_code)s"
+msgstr "Lỗi %(status_code)s"
 
 msgid "An error occured while the server was handling your request."
 msgstr "Có lỗi xảy ra khi xử lí yêu cầu của bạn."
@@ -837,18 +792,6 @@ msgstr "File"
 msgid "Tokens"
 msgstr "Token"
 
-#, python-format
-msgid "{seconds:g} second"
-msgstr "{seconds:g} giây"
-
-#, python-format
-msgid "{seconds:g} seconds"
-msgstr "{seconds:g} giây"
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr "%(mb)d MiB"
-
 msgid "Yes"
 msgstr "Có"
 
@@ -860,19 +803,19 @@ msgstr "In"
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text or PDF files of up to "
-"%(max_pages)d pages each."
+"You can print %(remaining_jobs)s more text or PDF files of up to "
+"%(max_pages)s pages each."
 msgstr ""
-"Bạn có thể in thêm tối đa %(remaining_jobs)d file văn bản hoặc PDF, mỗi file "
-"dài không quá %(max_pages)d trang."
+"Bạn có thể in thêm tối đa %(remaining_jobs)s file văn bản hoặc PDF, mỗi file "
+"dài không quá %(max_pages)s trang."
 
 #, python-format
 msgid ""
-"You can print %(remaining_jobs)d more text files of up to %(max_pages)d "
+"You can print %(remaining_jobs)s more text files of up to %(max_pages)s "
 "pages each."
 msgstr ""
-"Bạn có thể in thêm tối đa %(remaining_jobs)d file văn bản, mỗi file dài "
-"không quá %(max_pages)d trang."
+"Bạn có thể in thêm tối đa %(remaining_jobs)s file văn bản, mỗi file dài "
+"không quá %(max_pages)s trang."
 
 msgid "File (text or PDF)"
 msgstr "File (văn bản hoặc PDF)"
@@ -966,20 +909,20 @@ msgid "Some suggested translations follow."
 msgstr "Một số bản dịch gợi ý."
 
 #, python-format
-msgid "Statement in <b>%s</b>"
-msgstr "Đề bài theo ngôn ngữ <b>%s</b>"
+msgid "Statement in <b>%(lang)s</b>"
+msgstr "Đề bài theo ngôn ngữ <b>%(lang)s</b>"
 
 #, python-format
-msgid "Statement in %s"
-msgstr "Đề bài theo ngôn ngữ %s"
+msgid "Statement in %(lang)s"
+msgstr "Đề bài theo ngôn ngữ %(lang)s"
 
 #, python-format
-msgid "<b>%s</b>"
-msgstr "<b>%s</b>"
+msgid "<b>%(lang)s</b>"
+msgstr "<b>%(lang)s</b>"
 
 #, python-format
-msgid "%s"
-msgstr "%s"
+msgid "%(lang)s"
+msgstr "%(lang)s"
 
 msgid "Some details"
 msgstr "Chi tiết"
@@ -996,7 +939,7 @@ msgstr ""
 "tổng quan kì thi</a>."
 
 msgid ""
-"Remeber that to see the detailed result of a submission you need to use both "
+"Remember that to see the detailed result of a submission you need to use both "
 "a contest-token and a task-token."
 msgstr ""
 "Chú ý rằng để xem chi tiết chấm của một bài nộp bạn cần sử dụng một contest-"

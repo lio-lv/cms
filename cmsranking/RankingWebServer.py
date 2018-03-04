@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -21,8 +21,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys, itervalues, iteritems
 
 import argparse
@@ -452,9 +452,8 @@ def main():
     config.load(args.config)
 
     if args.drop:
-        print("Are you sure you want to delete directory %s? [y/N]" %
-              config.lib_dir, end='')
-        ans = input().lower()
+        ans = input("Are you sure you want to delete directory %s? [y/N]" %
+                    config.lib_dir).strip().lower()
         if ans in ['y', 'yes']:
             print("Removing directory %s." % config.lib_dir)
             shutil.rmtree(config.lib_dir)

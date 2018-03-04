@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -32,8 +32,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 
 import ipaddress
 import json
@@ -223,12 +223,12 @@ class BaseHandler(CommonRequestHandler):
         try:
             self.sql_session.commit()
         except IntegrityError as error:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 make_datetime(),
                 "Operation failed.", "%s" % error)
             return False
         else:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 make_datetime(),
                 "Operation successful.", "")
             return True
@@ -303,14 +303,12 @@ class BaseHandler(CommonRequestHandler):
             params["current_user"] = self.current_user
         if self.contest is not None:
             params["phase"] = self.contest.phase(params["timestamp"])
-            # Keep "== None" in filter arguments. SQLAlchemy does not
-            # understand "is None".
             params["unanswered"] = self.sql_session.query(Question)\
                 .join(Participation)\
                 .filter(Participation.contest_id == self.contest.id)\
-                .filter(Question.reply_timestamp == None)\
-                .filter(Question.ignored == False)\
-                .count()  # noqa
+                .filter(Question.reply_timestamp.is_(None))\
+                .filter(Question.ignored.is_(False))\
+                .count()
         # TODO: not all pages require all these data.
         params["contest_list"] = self.sql_session.query(Contest).all()
         params["task_list"] = self.sql_session.query(Task).all()

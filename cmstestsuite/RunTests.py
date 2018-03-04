@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -21,13 +21,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 
 import os
 import sys
 
-from cmstestsuite import FrameworkException, sh
+from cmstestsuite import sh
+from cmstestsuite import TestException
 
 
 UNITTESTS = "unittests"
@@ -58,7 +59,7 @@ def main():
             sh(["./cmstestsuite/RunUnitTests.py"] + sys.argv[1:])
         if test_suite == FUNCTIONALTESTS or len(test_suite) == 0:
             sh(["./cmstestsuite/RunFunctionalTests.py"] + sys.argv[1:])
-    except FrameworkException:
+    except TestException:
         if os.path.exists("./log/cms/last.log"):
             print("\n\n===== START OF LOG DUMP =====\n\n")
             print(open("./log/cms/last.log").read())

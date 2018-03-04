@@ -265,53 +265,8 @@ msgstr "執行中..."
 msgid "Executed"
 msgstr "已評測"
 
-#, python-format
-msgid "{seconds:0.3f} s"
-msgstr "{seconds:0.3f} 秒"
-
-msgid "%Y-%m-%d"
-msgstr "%Y-%m-%d"
-
-msgid "%H:%M:%S"
-msgstr "%H:%M:%S"
-
-msgid "%Y-%m-%d %H:%M:%S"
-msgstr "%Y-%m-%d %H:%M:%S"
-
 msgid "loading..."
 msgstr "載入中..."
-
-#, python-format
-msgid "%d second"
-msgid_plural "%d seconds"
-msgstr[0] "%d 秒"
-msgstr[1] "%d 秒"
-
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d 分鐘"
-msgstr[1] "%d 分鐘"
-
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d 小時"
-msgstr[1] "%d 小時"
-
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] "%d 天"
-msgstr[1] "%d 天"
-
-#, python-format
-msgid "%s and %s"
-msgstr "%s 與 %s"
-
-#, python-format
-msgid "more than %s"
-msgstr "超過 %s"
 
 msgid "contest-token"
 msgstr "競賽-Token"
@@ -405,8 +360,8 @@ msgid "You have no limitations on how you use them."
 msgstr "使用規則中沒有其他額外的限制."
 
 #, python-format
-msgid "Automatic (%s)"
-msgstr "自動偵測 (%s)"
+msgid "Automatic (%(lang)s)"
+msgstr "自動偵測 (%(lang)s)"
 
 #, python-format
 msgid ""
@@ -519,8 +474,8 @@ msgid "Standard Template Library"
 msgstr "STL 標準樣板函數庫"
 
 #, python-format
-msgid "Error %d"
-msgstr "錯誤 %d"
+msgid "Error %(status_code)s"
+msgstr "錯誤 %(status_code)s"
 
 msgid "An error occured while the server was handling your request."
 msgstr "競賽系統伺服器發生錯誤."
@@ -661,18 +616,6 @@ msgstr "傳送檔案"
 msgid "Tokens"
 msgstr ""
 
-#, python-format
-msgid "{seconds:g} second"
-msgstr "{seconds:g} 秒"
-
-#, python-format
-msgid "{seconds:g} seconds"
-msgstr "{seconds:g} 秒"
-
-#, python-format
-msgid "%(mb)d MiB"
-msgstr ""
-
 msgid "Yes"
 msgstr "是"
 
@@ -737,20 +680,20 @@ msgid "Some suggested translations follow."
 msgstr "推薦翻譯版本如下."
 
 #, python-format
-msgid "Statement in <b>%s</b>"
-msgstr "題目敘述 in <b>%s</b>"
+msgid "Statement in <b>%(lang)s</b>"
+msgstr "題目敘述 in <b>%(lang)s</b>"
 
 #, python-format
-msgid "Statement in %s"
-msgstr "題目敘述 in %s"
+msgid "Statement in %(lang)s"
+msgstr "題目敘述 in %(lang)s"
 
 #, python-format
-msgid "<b>%s</b>"
-msgstr ""
+msgid "<b>%(lang)s</b>"
+msgstr "<b>%(lang)s</b>"
 
 #, python-format
-msgid "%s"
-msgstr ""
+msgid "%(lang)s"
+msgstr "%(lang)s"
 
 msgid "Some details"
 msgstr "詳細資訊"
@@ -763,7 +706,7 @@ msgid "You can find the rules for the %(type_pl)s on the <a href=\"%(contest_roo
 msgstr "在<a href=\"%(contest_root)s/\">競賽概況</a>中, 可以看到 %(type_pl)s 的使用規則."
 
 msgid ""
-"Remeber that to see the detailed result of a submission you need to use both "
+"Remember that to see the detailed result of a submission you need to use both "
 "a contest-token and a task-token."
 msgstr "請注意: 欲觀看詳細的評測結果, 須使用競賽-Token 與題目-Token 各一枚."
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -29,8 +29,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 
 import argparse
 import logging
@@ -40,7 +40,6 @@ from cms.db import Attachment, Executable, File, Manager, PrintJob, \
     SessionGen, Statement, Testcase, UserTest, UserTestExecutable, \
     UserTestFile, UserTestManager, UserTestResult
 from cms.db.filecacher import FileCacher
-from cms.server.util import format_size
 
 
 logger = logging.getLogger()
@@ -77,7 +76,8 @@ def clean_files(session, dry_run):
     total_size = 0
     for orphan in files:
         total_size += filecacher.get_size(orphan)
-    logger.info("Orphan files take %s disk space", format_size(total_size))
+    logger.info("Orphan files take %s bytes of disk space",
+                "{:,}".format(total_size))
     if not dry_run:
         for count, orphan in enumerate(files):
             filecacher.delete(orphan)

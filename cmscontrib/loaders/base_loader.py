@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -22,13 +22,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
+from six import with_metaclass
 
 from abc import ABCMeta, abstractmethod
 
 
-class BaseLoader(object):
+class BaseLoader(with_metaclass(ABCMeta, object)):
     """Base class for deriving loaders.
 
     Each loader must extend this class and support the following
@@ -37,8 +38,6 @@ class BaseLoader(object):
       * The class method detect() can be called at any time.
 
     """
-
-    __metaclass__ = ABCMeta
 
     # Short name of this loader, meant to be a unique identifier.
     short_name = None
@@ -72,10 +71,6 @@ class BaseLoader(object):
                        given path.
 
         """
-        pass
-
-    @abstractmethod
-    def get_task_loader(self, taskname):
         pass
 
 
@@ -269,6 +264,17 @@ class ContestLoader(BaseLoader):
         return True.
 
         return (bool): True if the contset was changed, False otherwise.
+
+        """
+        pass
+
+    @abstractmethod
+    def get_task_loader(self, taskname):
+        """Return a loader class for the task with the given name.
+
+        taskname (string): name of the task.
+
+        return (TaskLoader): loader for the task with name taskname.
 
         """
         pass

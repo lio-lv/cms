@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -32,10 +32,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys, itervalues
 
+import datetime
 import json
 import logging
 import pickle
@@ -44,6 +45,7 @@ import tornado.web
 
 from cms import config
 from cms.db import Participation, PrintJob, User
+from cms.grading import COMPILATION_MESSAGES, EVALUATION_MESSAGES
 from cms.server import actual_phase_required, filter_ascii, multi_contest
 from cmscommon.datetime import make_datetime, make_timestamp
 from cmscommon.crypto import validate_password
@@ -187,8 +189,9 @@ class NotificationsHandler(ContestHandler):
         participation = self.current_user
 
         res = []
-        last_notification = make_datetime(
-            float(self.get_argument("last_notification", "0")))
+        last_notification = self.get_argument("last_notification", None)
+        last_notification = make_datetime(float(last_notification)) \
+            if last_notification is not None else datetime.datetime.min
 
         # Announcements
         for announcement in self.contest.announcements:
@@ -227,16 +230,8 @@ class NotificationsHandler(ContestHandler):
                             "subject": subject,
                             "text": text})
 
-        # Update the unread_count cookie before taking notifications
-        # into account because we don't want to count them.
-        cookie_name = self.contest.name + "_unread_count"
-        prev_unread_count = self.get_secure_cookie(cookie_name)
-        next_unread_count = len(res) + (
-            int(prev_unread_count) if prev_unread_count is not None else 0)
-        self.set_secure_cookie(cookie_name, "%d" % next_unread_count)
-
         # Simple notifications
-        notifications = self.application.service.notifications
+        notifications = self.service.notifications
         username = participation.user.username
         if username in notifications:
             for notification in notifications[username]:
@@ -292,7 +287,7 @@ class PrintingHandler(ContestHandler):
             .all()
         old_count = len(printjobs)
         if config.max_jobs_per_user <= old_count:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("Too many print jobs!"),
@@ -307,7 +302,7 @@ class PrintingHandler(ContestHandler):
         if any(len(filename) != 1
                for filename in itervalues(self.request.files)) \
                 or set(iterkeys(self.request.files)) != set(["file"]):
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("Invalid format!"),
@@ -321,7 +316,7 @@ class PrintingHandler(ContestHandler):
 
         # Check if submitted file is small enough.
         if len(data) > config.max_print_length:
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("File too big!"),
@@ -333,7 +328,7 @@ class PrintingHandler(ContestHandler):
 
         # We now have to send the file to the destination...
         try:
-            digest = self.application.service.file_cacher.put_file_content(
+            digest = self.service.file_cacher.put_file_content(
                 data,
                 "Print job sent by %s at %d." % (
                     participation.user.username,
@@ -342,7 +337,7 @@ class PrintingHandler(ContestHandler):
         # In case of error, the server aborts
         except Exception as error:
             logger.error("Storage failed! %s", error)
-            self.application.service.add_notification(
+            self.service.add_notification(
                 participation.user.username,
                 self.timestamp,
                 self._("Print job storage failed!"),
@@ -362,9 +357,9 @@ class PrintingHandler(ContestHandler):
 
         self.sql_session.add(printjob)
         self.sql_session.commit()
-        self.application.service.printing_service.new_printjob(
+        self.service.printing_service.new_printjob(
             printjob_id=printjob.id)
-        self.application.service.add_notification(
+        self.service.add_notification(
             participation.user.username,
             self.timestamp,
             self._("Print job received"),
@@ -381,4 +376,7 @@ class DocumentationHandler(ContestHandler):
     @tornado.web.authenticated
     @multi_contest
     def get(self):
-        self.render("documentation.html", **self.r_params)
+        self.render("documentation.html",
+                    COMPILATION_MESSAGES=COMPILATION_MESSAGES,
+                    EVALUATION_MESSAGES=EVALUATION_MESSAGES,
+                    **self.r_params)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -30,8 +30,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 
 import json
 import logging
@@ -155,9 +155,9 @@ class NotificationsHandler(BaseHandler):
         # Keep "== None" in filter arguments. SQLAlchemy does not
         # understand "is None".
         questions = self.sql_session.query(Question)\
-            .filter(Question.reply_timestamp == None)\
+            .filter(Question.reply_timestamp.is_(None))\
             .filter(Question.question_timestamp > last_notification)\
-            .all()  # noqa
+            .all()
 
         for question in questions:
             res.append({
@@ -169,11 +169,11 @@ class NotificationsHandler(BaseHandler):
             })
 
         # Simple notifications
-        for notification in self.application.service.notifications:
+        for notification in self.service.notifications:
             res.append({"type": "notification",
                         "timestamp": make_timestamp(notification[0]),
                         "subject": notification[1],
                         "text": notification[2]})
-        self.application.service.notifications = []
+        self.service.notifications = []
 
         self.write(json.dumps(res))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
@@ -26,8 +26,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.builtins.disabled import *
-from future.builtins import *
+from future.builtins.disabled import *  # noqa
+from future.builtins import *  # noqa
 from six import iterkeys, iteritems
 
 import unittest
@@ -49,13 +49,13 @@ class TestESOperations(TestCaseWithDatabase):
         self.contest = self.add_contest()
         self.participation = self.add_participation(contest=self.contest)
         self.tasks = [
-            self.add_task(self.contest),
-            self.add_task(self.contest)
+            self.add_task(contest=self.contest),
+            self.add_task(contest=self.contest)
         ]
         self.datasets = sum([[
-            self.add_dataset(task, autojudge=False),
-            self.add_dataset(task, autojudge=True),
-            self.add_dataset(task, autojudge=False),
+            self.add_dataset(task=task, autojudge=False),
+            self.add_dataset(task=task, autojudge=True),
+            self.add_dataset(task=task, autojudge=False),
         ] for task in self.tasks], [])
         # For maximum possibility of bugs, we use an active dataset
         # with the autojudge bit unset (operations for the active
@@ -425,8 +425,8 @@ class TestESOperations(TestCaseWithDatabase):
     @staticmethod
     def to_judge(dataset):
         return (
-            dataset.autojudge
-            or dataset.task.active_dataset_id == dataset.id)
+            dataset.autojudge or
+            dataset.task.active_dataset_id == dataset.id)
 
 
 if __name__ == "__main__":
