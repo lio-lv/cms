@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Programming contest management system
@@ -17,13 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import logging
 import os
-from backports import csv  # Use native csv reader in python3
+import csv
 import io
 
 from cms.db import User
@@ -43,7 +39,7 @@ class CsvUserLoader(UserLoader):
         raise Exception("get_task_loader is irrelevant for user loader")
 
     short_name = 'csv_user'
-    description = 'Simple csv user lodaer'
+    description = 'Simple csv user loader'
 
     USER_FILE = "contestants.csv"
 
@@ -105,7 +101,7 @@ class CsvUserLoader(UserLoader):
 
     def get_user(self):
         users = self.get_users()
-        users = filter(lambda user: user.username == self.user, users)
+        users = [user for user in users if user.username == self.user]
         if len(users) != 1:
             logger.critical("Incorrect user count %d", len(users))
             return None

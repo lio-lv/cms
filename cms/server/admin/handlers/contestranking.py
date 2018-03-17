@@ -159,7 +159,7 @@ class DetailedResultsHandler(BaseHandler):
     @staticmethod
     def __get_result(text):
         # TODO: use translation files when AWS supports them
-        text = json.loads(text)[0]
+        text, = text
         messages = {
             "Output is correct": u"Pareizi",
             "Output is partially correct": u"Daļēji pareizi",
@@ -248,7 +248,7 @@ class DetailedResultsHandler(BaseHandler):
                         status = SubmissionResult.COMPILING
 
                     if status == SubmissionResult.SCORED:
-                        test_results = json.loads(sr.score_details)
+                        test_results = sr.score_details
                         for group in test_results:
                             for testcase in group['testcases']:
                                 testcase['text'] = DetailedResultsHandler\

@@ -405,7 +405,7 @@ class ImportUsersHandler(
             first_names = self.get_body_arguments('first_name', None)
             last_names = self.get_body_arguments('last_name', None)
             passwords = self.get_body_arguments('password', None)
-            for i in xrange(len(usernames)):
+            for i in range(len(usernames)):
                 args = {
                     'username': usernames[i],
                     'first_name': first_names[i],
