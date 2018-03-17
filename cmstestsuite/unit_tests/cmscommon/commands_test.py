@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
-# Copyright © 2015-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities to generate "unique" test ids."""
+"""Tests for the binary module"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -26,24 +26,33 @@ from __future__ import unicode_literals
 from future.builtins.disabled import *  # noqa
 from future.builtins import *  # noqa
 
-import random
+import unittest
 
-from cmscommon.digest import bytes_digest
-
-
-def unique_long_id():
-    """Return a unique id of type long."""
-    if not hasattr(unique_long_id, "id"):
-        unique_long_id.id = random.randint(0, 1000000000)
-    unique_long_id.id += 1
-    return unique_long_id.id
+from cmscommon.commands import pretty_print_cmdline
 
 
-def unique_unicode_id():
-    """Return a unique id of type unicode."""
-    return str(unique_long_id())
+class TestPrettyPrintCmdline(unittest.TestCase):
+
+    def test_success(self):
+        self.assertEqual(
+            pretty_print_cmdline(["ls", "-al", "file"]),
+            "ls -al file")
+
+    def test_spaces(self):
+        self.assertEqual(
+            pretty_print_cmdline(["ls", "-al", "file with spaces"]),
+            "ls -al 'file with spaces'")
+
+    def test_quotes(self):
+        self.assertEqual(
+            pretty_print_cmdline(["ls", "-al", "file'with'quotes"]),
+            """ls -al 'file'"'"'with'"'"'quotes'""")
+
+    def test_double_quotes(self):
+        self.assertEqual(
+            pretty_print_cmdline(["ls", "-al", "file\"with\"dblquotes"]),
+            """ls -al 'file"with"dblquotes'""")
 
 
-def unique_digest():
-    """Return a unique digest-like string."""
-    return bytes_digest(unique_unicode_id().encode("utf-8"))
+if __name__ == "__main__":
+    unittest.main()
