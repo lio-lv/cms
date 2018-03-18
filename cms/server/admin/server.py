@@ -34,6 +34,8 @@ from future.builtins.disabled import *  # noqa
 from future.builtins import *  # noqa
 from six import iterkeys, itervalues
 
+import locale
+
 import logging
 import pkg_resources
 
@@ -79,6 +81,13 @@ class AdminWebServer(WebService):
             parameters,
             shard=shard,
             listen_address=config.admin_listen_address)
+
+        # For printing of detailed results
+        try:
+            locale.setlocale(locale.LC_COLLATE, 'lv_LV.UTF-8')
+            locale.setlocale(locale.LC_NUMERIC, 'lv_LV.UTF-8')
+        except locale.Error:
+            logger.warning("Failed to set lv_LV.UTF-8 locale")
 
         # A list of pending notifications.
         self.notifications = []

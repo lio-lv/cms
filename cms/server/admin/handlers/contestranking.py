@@ -37,6 +37,7 @@ import six
 
 import csv
 import io
+import locale
 
 from sqlalchemy.orm import joinedload
 
@@ -182,8 +183,8 @@ class DetailedResultsHandler(BaseHandler):
 
     @staticmethod
     def __format_score(score, max_score, precision):
-        format_str = "{{:.{0}f}}/{{:.{0}f}}".format(precision)
-        return format_str.format(score, max_score)
+        format_str = "%.{0}f/%.{0}f".format(precision)
+        return locale.format_string(format_str, (score, max_score))
 
     @require_permission(BaseHandler.AUTHENTICATED)
     def get(self, contest_id):
@@ -213,10 +214,9 @@ class DetailedResultsHandler(BaseHandler):
             scoretype = scoretypes.get_score_type(dataset=dataset)
             max_score += scoretype.max_score
 
-        # TODO: decide how to deal with collation
         for p in sorted(contest.participations,
-                        key=lambda p: (p.user.last_name, p.user.first_name)):
-
+                        key=lambda p: (locale.strxfrm(p.user.last_name),
+                                       locale.strxfrm(p.user.first_name))):
             if p.hidden:
                 continue
 
