@@ -41,6 +41,7 @@ import logging
 
 import tornado.web
 import re
+import unicodedata
 
 from cms.db import Contest, Message, Participation, Submission, User, Team
 from cmscommon.datetime import make_datetime
@@ -289,11 +290,14 @@ class ImportParticipantsHandler(BaseHandler):
         self.r_params["contest"] = self.contest
         self.render("participations_import.html", **self.r_params)
 
+    team_bad_re = re.compile(r'[^a-zA-Z0-9-]+') # '_' is included
+
     @staticmethod
     def prepare_team_code(name):
-        result = name.lower().replace(" ", "_").replace(".", "_")
-        return re.sub(r'[^a-zA-Z0-9_-]+', '_', result)
-
+        result = ''.join(c for c in unicodedata.normalize("NFKD", name.lower())
+                         if not unicodedata.combining(c))
+        result = ImportParticipantsHandler.team_bad_re.sub("_", result)
+        return result.strip("_")
 
     @require_permission(BaseHandler.PERMISSION_ALL)
     def post(self, contest_id):
