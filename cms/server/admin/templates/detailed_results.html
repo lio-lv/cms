@@ -10,9 +10,11 @@
         font-size: 50%;
       }
       .pagebreak {
-        page-break-after: always;
+        page-break-after: right;
       }
       .results {
+        /* Shouldn't work on tables: https://www.w3.org/TR/css-multicol-1/#cc,
+           but still works in Chromium */
         column-count: 3;
       }
       table {
