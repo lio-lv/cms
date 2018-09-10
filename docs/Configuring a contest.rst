@@ -19,7 +19,7 @@ Contest administrators can limit the ability of users to submit submissions and 
 
 - ``min_submission_interval`` / ``min_user_test_interval``
 
-  These set, respectively, the minimum amount of time, in minutes, the user is required to wait after a submission or user test has been submitted before they are allowed to send in new ones. Any attempt to submit a submission or user test before this timeout has expired will fail.
+  These set, respectively, the minimum amount of time, in seconds, the user is required to wait after a submission or user test has been submitted before they are allowed to send in new ones. Any attempt to submit a submission or user test before this timeout has expired will fail.
 
 The limits can be set both for individual tasks and for the whole contest. A submission or user test is accepted if it verifies the conditions on both the task *and* the contest. This means that a submission or user test will be accepted if the number of submissions or user tests received so far for that task is strictly less that the task's maximum number *and* the number of submissions or user tests received so far for the whole contest (i.e. in all tasks) is strictly less than the contest's maximum number. The same holds for the minimum interval too: a submission or user test will be accepted if the time passed since the last submission or user test for that task is greater than the task's minimum interval *and* the time passed since the last submission or user test received for the whole contest (i.e. in any of the tasks) is greater than the contest's minimum interval.
 
@@ -206,8 +206,6 @@ PHP and Python have only been tested with Batch task types, and have not thoroug
 
 Java with JDK works with Batch and Communication task types. Under usual conditions (default submission format) contestants must name their class as the short name of the task.
 
-Other programming languages, or even other versions of the same languages, can be added by creating new specification files in :file:`cms/grading/languages`.
-
 .. warning::
 
    Java with JDK uses multithreading even for simple programs. Therefore, if this language is allowed in the contest, multithreading and multiprocessing will be allowed in the sandbox for *all* evaluations (even with other languages).
@@ -235,3 +233,9 @@ Language details
 * Rust support is provided by ``rustc``, and submissions are optimized with ``-O``.
 
 * C# uses the system version of the Mono compiler ``mcs`` and the runtime ``mono``. Submissions are optimized with ``-optimize+``.
+
+
+Custom languages
+----------------
+
+Additional languages can be defined if necessary. This works in the same way :ref:`as with task types <tasktypes_custom>`: the classes need to extend :py:class:`cms.grading.language.Language` and the entry point group is called `cms.grading.languages`.

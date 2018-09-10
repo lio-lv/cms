@@ -31,9 +31,9 @@ import datetime
 import io
 import logging
 import os
-import random
 import subprocess
 
+from cms import TOKEN_MODE_FINITE
 from cmstestsuite import CONFIG
 from cmstestsuite.functionaltestframework import FunctionalTestFramework
 from cmstestsuite.Test import TestFailure
@@ -46,20 +46,23 @@ logger = logging.getLogger(__name__)
 
 
 class TestRunner(object):
-    def __init__(self, test_list, contest_id=None, workers=1):
+    def __init__(self, test_list, contest_id=None, workers=1, cpu_limits=None):
         self.start_time = datetime.datetime.now()
         self.last_end_time = self.start_time
 
         self.framework = FunctionalTestFramework()
         self.load_cms_conf()
 
-        self.ps = ProgramStarter()
+        self.ps = ProgramStarter(cpu_limits)
 
         # Map from task name to (task id, task_module).
         self.task_id_map = {}
 
-        # Random bit to append to object's names to avoid collisions.
-        self.rand = random.randint(0, 999999999)
+        # String to append to objects' names to avoid collisions. Will be the
+        # first positive integer i for which admin_<i> is not already
+        # registered, and we will hope that if the admin name doesn't clash, no
+        # other name will.
+        self.suffix = None
 
         self.num_users = 0
         self.workers = workers
@@ -70,7 +73,7 @@ class TestRunner(object):
             os.environ["PYTHONPATH"] = "%(TEST_DIR)s" % CONFIG
 
         self.start_generic_services()
-        self.framework.initialize_aws(self.rand)
+        self.suffix = self.framework.initialize_aws()
 
         if contest_id is None:
             self.contest_id = self.create_contest()
@@ -133,15 +136,15 @@ class TestRunner(object):
         start_time = datetime.datetime.utcnow()
         stop_time = start_time + datetime.timedelta(1, 0, 0)
         self.contest_id = self.framework.add_contest(
-            name="testcontest" + str(self.rand),
-            description="A test contest #%s." % self.rand,
+            name="testcontest_%s" % self.suffix,
+            description="A test contest #%s." % self.suffix,
             languages=list(ALL_LANGUAGES),
             allow_password_authentication="checked",
             start=start_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
             stop=stop_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
             timezone=get_system_timezone(),
             allow_user_tests="checked",
-            token_mode="finite",
+            token_mode=TOKEN_MODE_FINITE,
             token_max_number="100",
             token_min_interval="0",
             token_gen_initial="100",
@@ -165,7 +168,7 @@ class TestRunner(object):
                 return 'th'
             return {1: 'st', 2: 'nd', 3: 'rd'}.get(x % 10, 'th')
 
-        username = "testrabbit_%d_%d" % (self.rand, self.num_users)
+        username = "testrabbit_%s_%d" % (self.suffix, self.num_users)
 
         # Find a user that may already exist (from a previous contest).
         users = self.framework.get_users(self.contest_id)
@@ -177,6 +180,7 @@ class TestRunner(object):
             "last_name": "Wabbit the %d%s" % (self.num_users,
                                               enumerify(self.num_users))
         }
+
         if username in users:
             self.user_id = users[username]['id']
             self.framework.add_existing_user(self.user_id, **user_create_args)
@@ -195,7 +199,7 @@ class TestRunner(object):
         return (int): task id of the new (or existing) task.
 
         """
-        name = task_module.task_info['name'] + str(self.rand)
+        name = "%s_%s" % (task_module.task_info['name'], self.suffix)
 
         # Have we done this before? Pull it out of our cache if so.
         if name in self.task_id_map:
@@ -205,7 +209,7 @@ class TestRunner(object):
             return self.task_id_map[name][0]
 
         task_create_args = {
-            "token_mode": "finite",
+            "token_mode": TOKEN_MODE_FINITE,
             "token_max_number": "100",
             "token_min_interval": "0",
             "token_gen_initial": "100",
@@ -286,9 +290,9 @@ class TestRunner(object):
             having a clearer view of the time each step takes.
 
         """
-        # Pre-install all tasks in the contest. After this, we restart
-        # ProxyService to ensure it reinitializes, picking up the new
-        # tasks and sending them to RWS.
+        # Pre-install all tasks in the contest. We start the other services
+        # after this to ensure they pick up the new tasks before receiving
+        # data for them.
         for test in self.test_list:
             self.create_or_get_task(test.task_module)
 

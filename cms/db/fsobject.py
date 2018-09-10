@@ -34,7 +34,8 @@ from future.builtins import *  # noqa
 import io
 
 from sqlalchemy.schema import Column
-from sqlalchemy.types import Integer, String, Unicode
+from sqlalchemy.types import String, Unicode
+from sqlalchemy.dialects.postgresql import OID
 
 import psycopg2
 import psycopg2.extensions
@@ -119,7 +120,7 @@ class LargeObject(io.RawIOBase):
         self._fd = self._execute("SELECT lo_open(%(loid)s, %(mode)s);",
                                  {'loid': self.loid, 'mode': open_mode},
                                  "Couldn't open large object with LOID "
-                                 "%s." % (self.loid), cursor)
+                                 "%s." % self.loid, cursor)
 
         cursor.close()
 
@@ -282,9 +283,9 @@ class LargeObject(io.RawIOBase):
         if self._fd is None:
             raise io.UnsupportedOperation("Large object is closed.")
 
-        pos = self._.execute("SELECT lo_tell(%(fd)s);",
-                             {'fd': self._fd},
-                             "Couldn't tell large object.")
+        pos = self._execute("SELECT lo_tell(%(fd)s);",
+                            {'fd': self._fd},
+                            "Couldn't tell large object.")
         return pos
 
     def truncate(self, size=None):
@@ -346,11 +347,8 @@ class LargeObject(io.RawIOBase):
             conn = custom_psycopg2_connection()
             conn.autocommit = True
 
-        # FIXME Use context manager as soon as we require psycopg2-2.5.
-        cursor = conn.cursor()
-        cursor.execute("SELECT lo_unlink(%(loid)s);",
-                       {'loid': loid})
-        cursor.close()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT lo_unlink(%(loid)s);", {'loid': loid})
 
 
 class FSObject(Base):
@@ -371,7 +369,7 @@ class FSObject(Base):
 
     # OID of the large object in the database
     loid = Column(
-        Integer,
+        OID,
         nullable=False,
         default=0)
 

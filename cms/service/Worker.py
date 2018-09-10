@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
@@ -38,7 +38,7 @@ import time
 import gevent.lock
 
 from cms.io import Service, rpc_method
-from cms.db import SessionGen, Contest
+from cms.db import SessionGen, Contest, enumerate_files
 from cms.db.filecacher import FileCacher, TombstoneError
 from cms.grading import JobException
 from cms.grading.tasktypes import get_task_type
@@ -85,8 +85,8 @@ class Worker(Service):
         logger.info("Precaching files for contest %d.", contest_id)
         with SessionGen() as session:
             contest = Contest.get_from_id(contest_id, session)
-            files = contest.enumerate_files(skip_submissions=True,
-                                            skip_user_tests=True)
+            files = enumerate_files(session, contest, skip_submissions=True,
+                                    skip_user_tests=True, skip_print_jobs=True)
         for digest in files:
             try:
                 self.file_cacher.load(digest, if_needed=True)
@@ -129,20 +129,7 @@ class Worker(Service):
                             job.success = False
                             job.plus = {"tombstone": True}
                     else:
-                        time.sleep(self._fake_worker_time)
-                        job.success = True
-                        job.text = ["ok"]
-                        job.plus = {
-                            "execution_time": self._fake_worker_time,
-                            "execution_wall_clock_time":
-                            self._fake_worker_time,
-                            "execution_memory": 1000,
-                        }
-
-                        if isinstance(job, CompilationJob):
-                            job.compilation_success = True
-                        elif isinstance(job, EvaluationJob):
-                            job.outcome = "1.0"
+                        self._fake_work(job)
 
                     logger.info("Finished job.",
                                 extra={"operation": job.info})
@@ -150,8 +137,8 @@ class Worker(Service):
                 logger.info("Finished job group.")
                 return job_group.export_to_dict()
 
-            except:
-                err_msg = "Worker failed."
+            except Exception as e:
+                err_msg = "Worker failed: %s." % e
                 logger.error(err_msg, exc_info=True)
                 raise JobException(err_msg)
 
@@ -167,6 +154,21 @@ class Worker(Service):
             logger.warning(err_msg)
             self._finalize(start_time)
             raise JobException(err_msg)
+
+    def _fake_work(self, job):
+        """Fill the job with fake success data after waiting for some time."""
+        time.sleep(self._fake_worker_time)
+        job.success = True
+        job.text = ["ok"]
+        job.plus = {
+            "execution_time": self._fake_worker_time,
+            "execution_wall_clock_time": self._fake_worker_time,
+            "execution_memory": 1000,
+        }
+        if isinstance(job, CompilationJob):
+            job.compilation_success = True
+        elif isinstance(job, EvaluationJob):
+            job.outcome = "1.0"
 
     def _finalize(self, start_time):
         end_time = time.time()

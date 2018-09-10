@@ -59,9 +59,10 @@ from sqlalchemy.dialects.postgresql import ARRAY, CIDR, JSONB
 import cms.db as class_hook
 
 from cms import utf8_decoder
-from cms.db import version as model_version
+from cms.db import version as model_version, Codename, Filename, \
+    FilenameSchema, FilenameSchemaArray, Digest
 from cms.db import SessionGen, Contest, Submission, SubmissionResult, \
-    UserTest, UserTestResult, init_db, drop_db
+    UserTest, UserTestResult, PrintJob, init_db, drop_db, enumerate_files
 from cms.db.filecacher import FileCacher
 
 from cmscommon.archive import Archive
@@ -109,7 +110,8 @@ def decode_value(type_, value):
     if value is None:
         return None
     elif isinstance(type_, (
-            Boolean, Integer, Float, String, Unicode, Enum, JSONB)):
+            Boolean, Integer, Float, String, Unicode, Enum, JSONB, Codename,
+            Filename, FilenameSchema, Digest)):
         return value
     elif isinstance(type_, DateTime):
         try:
@@ -120,7 +122,7 @@ def decode_value(type_, value):
             return datetime(2030, 1, 1)
     elif isinstance(type_, Interval):
         return timedelta(seconds=value)
-    elif isinstance(type_, ARRAY):
+    elif isinstance(type_, (ARRAY, FilenameSchemaArray)):
         return list(decode_value(type_.item_type, item) for item in value)
     elif isinstance(type_, CIDR):
         return ipaddress.ip_network(value)
@@ -139,13 +141,14 @@ class DumpImporter(object):
 
     def __init__(self, drop, import_source,
                  load_files, load_model, skip_generated,
-                 skip_submissions, skip_user_tests):
+                 skip_submissions, skip_user_tests, skip_print_jobs):
         self.drop = drop
         self.load_files = load_files
         self.load_model = load_model
         self.skip_generated = skip_generated
         self.skip_submissions = skip_submissions
         self.skip_user_tests = skip_user_tests
+        self.skip_print_jobs = skip_print_jobs
 
         self.import_source = import_source
         self.import_dir = import_source
@@ -257,6 +260,10 @@ class DumpImporter(object):
                     if self.skip_user_tests and isinstance(v, UserTest):
                         del self.objs[k]
 
+                    # Skip print jobs if requested
+                    if self.skip_print_jobs and isinstance(v, PrintJob):
+                        del self.objs[k]
+
                     # Skip generated data if requested
                     if self.skip_generated and \
                             isinstance(v, (SubmissionResult, UserTestResult)):
@@ -278,9 +285,12 @@ class DumpImporter(object):
 
                     if isinstance(obj, Contest):
                         contest_id += [obj.id]
-                        contest_files |= obj.enumerate_files(
-                            self.skip_submissions, self.skip_user_tests,
-                            self.skip_generated)
+                        contest_files |= enumerate_files(
+                            session, obj,
+                            skip_submissions=self.skip_submissions,
+                            skip_user_tests=self.skip_user_tests,
+                            skip_print_jobs=self.skip_print_jobs,
+                            skip_generated=self.skip_generated)
 
                 session.commit()
             else:
@@ -346,7 +356,7 @@ class DumpImporter(object):
         """Import objects from the given data (without relationships).
 
         The given data is assumed to be a dict in the format produced by
-        ContestExporter. This method reads the "_class" item and tries
+        DumpExporter. This method reads the "_class" item and tries
         to find the corresponding class. Then it loads all column
         properties of that class (those that are present in the data)
         and uses them as keyword arguments in a call to the class
@@ -475,6 +485,8 @@ def main():
                         help="don't import submissions")
     parser.add_argument("-U", "--no-user-tests", action="store_true",
                         help="don't import user tests")
+    parser.add_argument("-P", "--no-print-jobs", action="store_true",
+                        help="don't import print jobs")
     parser.add_argument("import_source", action="store", type=utf8_decoder,
                         help="source directory or compressed file")
 
@@ -486,7 +498,8 @@ def main():
                             load_model=not args.files,
                             skip_generated=args.no_generated,
                             skip_submissions=args.no_submissions,
-                            skip_user_tests=args.no_user_tests)
+                            skip_user_tests=args.no_user_tests,
+                            skip_print_jobs=args.no_print_jobs)
     success = importer.do_import()
     return 0 if success is True else 1
 

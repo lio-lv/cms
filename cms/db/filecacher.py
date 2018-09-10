@@ -44,7 +44,7 @@ from sqlalchemy.exc import IntegrityError
 
 from cmscommon.digest import Digester
 from cms import config, mkdir, rmtree
-from cms.db import SessionGen, FSObject, LargeObject
+from cms.db import SessionGen, Digest, FSObject, LargeObject
 
 
 logger = logging.getLogger(__name__)
@@ -485,9 +485,6 @@ class FileCacher(object):
     # CHUNK_SIZE should be a multiple of these values.
     CHUNK_SIZE = 2 ** 14  # 16348
 
-    # The fake digest used to mark a file as deleted in the backend.
-    TOMBSTONE_DIGEST = "x"
-
     def __init__(self, service=None, path=None, null=False):
         """Initialize.
 
@@ -517,6 +514,10 @@ class FileCacher(object):
         else:
             self.backend = FSBackend(path)
 
+        # First we create the config directories.
+        self._create_directory_or_die(config.temp_dir)
+        self._create_directory_or_die(config.cache_dir)
+
         if service is None:
             self.file_dir = tempfile.mkdtemp(dir=config.temp_dir)
             # Delete this directory on exit since it has a random name and
@@ -526,14 +527,22 @@ class FileCacher(object):
             self.file_dir = os.path.join(
                 config.cache_dir,
                 "fs-cache-%s-%d" % (service.name, service.shard))
+        self._create_directory_or_die(self.file_dir)
 
-        self.temp_dir = os.path.join(self.file_dir, "_temp")
-
-        if not mkdir(config.cache_dir) or not mkdir(config.temp_dir) \
-                or not mkdir(self.file_dir) or not mkdir(self.temp_dir):
-            logger.error("Cannot create necessary directories.")
-            raise RuntimeError("Cannot create necessary directories.")
+        # Temp dir must be a subdirectory of file_dir to avoid cross-filesystem
+        # moves.
+        self.temp_dir = tempfile.mkdtemp(dir=self.file_dir, prefix="_temp")
         atexit.register(lambda: rmtree(self.temp_dir))
+        # Just to make sure it was created.
+        self._create_directory_or_die(self.file_dir)
+
+    @staticmethod
+    def _create_directory_or_die(directory):
+        """Create directory and ensure it exists, or raise a RuntimeError."""
+        if not mkdir(directory):
+            msg = "Cannot create required directory '%s'." % directory
+            logger.error(msg)
+            raise RuntimeError(msg)
 
     def load(self, digest, if_needed=False):
         """Load the file with the given digest into the cache.
@@ -549,7 +558,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         cache_file_path = os.path.join(self.file_dir, digest)
         if if_needed and os.path.exists(cache_file_path):
@@ -557,16 +566,9 @@ class FileCacher(object):
 
         ftmp_handle, temp_file_path = tempfile.mkstemp(dir=self.temp_dir,
                                                        text=False)
-        ftmp = io.open(ftmp_handle, 'wb')
-
-        fobj = self.backend.get_file(digest)
-
-        # Copy the file to a temporary position
-        try:
+        with io.open(ftmp_handle, 'wb') as ftmp, \
+                self.backend.get_file(digest) as fobj:
             copyfileobj(fobj, ftmp, self.CHUNK_SIZE)
-        finally:
-            ftmp.close()
-            fobj.close()
 
         # Then move it to its real location (this operation is atomic
         # by POSIX requirement)
@@ -592,7 +594,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         cache_file_path = os.path.join(self.file_dir, digest)
 
@@ -622,7 +624,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         with self.get_file(digest) as src:
             return src.read()
@@ -641,7 +643,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         with self.get_file(digest) as src:
             copyfileobj(src, dst, self.CHUNK_SIZE)
@@ -659,7 +661,7 @@ class FileCacher(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         with self.get_file(digest) as src:
             with io.open(dst_path, 'wb') as dst:
@@ -678,7 +680,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         cache_file_path = os.path.join(self.file_dir, digest)
 
@@ -796,7 +798,7 @@ class FileCacher(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         return self.backend.describe(digest)
 
@@ -812,7 +814,7 @@ class FileCacher(object):
         raise (TombstoneError): if the digest is the tombstone
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             raise TombstoneError()
         return self.backend.get_size(digest)
 
@@ -822,7 +824,7 @@ class FileCacher(object):
         digest (unicode): the digest of the file to delete.
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             return
         self.drop(digest)
         self.backend.delete(digest)
@@ -833,7 +835,7 @@ class FileCacher(object):
         digest (unicode): the file to delete.
 
         """
-        if digest == FileCacher.TOMBSTONE_DIGEST:
+        if digest == Digest.TOMBSTONE:
             return
         cache_file_path = os.path.join(self.file_dir, digest)
 
@@ -885,15 +887,12 @@ class FileCacher(object):
         """
         clean = True
         for digest, _ in self.list():
-            fobj = self.backend.get_file(digest)
             d = Digester()
-            try:
+            with self.backend.get_file(digest) as fobj:
                 buf = fobj.read(self.CHUNK_SIZE)
                 while len(buf) > 0:
                     d.update(buf)
                     buf = fobj.read(self.CHUNK_SIZE)
-            finally:
-                fobj.close()
             computed_digest = d.digest()
             if digest != computed_digest:
                 logger.error("File with hash %s actually has hash %s",

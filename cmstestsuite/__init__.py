@@ -34,7 +34,6 @@ import io
 import logging
 import os
 import subprocess
-import sys
 
 
 logger = logging.getLogger(__name__)
@@ -72,46 +71,3 @@ def sh(cmdline, ignore_failure=False):
             # TODO Use shlex.quote in Python 3.3.
             "Execution failed with %d/%d. Tried to execute:\n%s\n" %
             (ret & 0xff, ret >> 8, ' '.join(cmdline)))
-
-
-_COVERAGE_DIRECTORIES = [
-    "cms",
-    "cmscommon",
-    "cmscontrib",
-    "cmsranking",
-    "cmstaskenv",
-]
-_COVERAGE_CMDLINE = [
-    sys.executable, "-m", "coverage", "run", "-p",
-    "--source=%s" % ",".join(_COVERAGE_DIRECTORIES)]
-
-
-def coverage_cmdline(cmdline):
-    """Return a cmdline possibly decorated to record coverage."""
-    if CONFIG.get('COVERAGE', False):
-        return _COVERAGE_CMDLINE + cmdline
-    else:
-        return cmdline
-
-
-def clear_coverage():
-    """Clear existing coverage reports."""
-    if CONFIG.get('COVERAGE', False):
-        logging.info("Clearing old coverage data.")
-        sh([sys.executable, "-m", "coverage", "erase"])
-
-
-def combine_coverage():
-    """Combine coverage reports from different programs."""
-    if CONFIG.get('COVERAGE', False):
-        logger.info("Combining coverage results.")
-        sh([sys.executable, "-m", "coverage", "combine"])
-
-
-def send_coverage_to_codecov(flag):
-    """Send the coverage report to Codecov with the given flag."""
-    if CONFIG.get('COVERAGE', False):
-        logger.info("Sending coverage results to codecov for flag %s." % flag)
-        subprocess.call(
-            "bash -c 'bash <(curl -s https://codecov.io/bash) -c -F %s'" %
-            flag, shell=True)

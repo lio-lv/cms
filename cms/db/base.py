@@ -37,8 +37,9 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy.orm import \
     class_mapper, object_mapper, ColumnProperty, RelationshipProperty
 from sqlalchemy.types import \
-    Boolean, Integer, Float, String, Unicode, Enum, DateTime, Interval
-from sqlalchemy.dialects.postgresql import ARRAY, CIDR, JSONB
+    Boolean, Integer, Float, String, Unicode, Enum, DateTime, Interval, \
+    BigInteger
+from sqlalchemy.dialects.postgresql import ARRAY, CIDR, JSONB, OID
 
 import six
 # In both Python 2 and 3, everything is an object. But in py2 we alias
@@ -50,20 +51,28 @@ else:
     import __builtin__
     raw_object = __builtin__.object
 
-from . import engine, CastingArray
+from . import engine, metadata, CastingArray, Codename, Filename, \
+    FilenameSchema, FilenameSchemaArray, Digest
 
 
 _TYPE_MAP = {
     Boolean: bool,
     Integer: six.integer_types,
+    BigInteger: six.integer_types,
+    OID: six.integer_types,
     Float: float,
     Enum: six.text_type,
     Unicode: six.text_type,
     String: six.string_types,  # TODO Use six.binary_type.
+    Codename: six.text_type,
+    Filename: six.text_type,
+    FilenameSchema: six.text_type,
+    Digest: six.text_type,
     DateTime: datetime,
     Interval: timedelta,
     ARRAY: list,
     CastingArray: list,
+    FilenameSchemaArray: list,
     CIDR: (ipaddress.IPv4Network, ipaddress.IPv6Network),
     JSONB: raw_object,
 }
@@ -328,7 +337,4 @@ class Base(object):
                 attrs.popitem()[0])
 
 
-Base = declarative_base(engine, cls=Base, constructor=None)
-
-
-metadata = Base.metadata
+Base = declarative_base(engine, metadata=metadata, cls=Base, constructor=None)

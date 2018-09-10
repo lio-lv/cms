@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2015 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
@@ -41,10 +41,9 @@ import locale
 
 from sqlalchemy.orm import joinedload
 
-from cms.db import Contest
-from cms.db import SubmissionResult
-from cms.grading import task_score, task_scored_submission, scoretypes
-from cms.grading.ScoreType import ScoreTypeGroup
+from cms.db import Contest, SubmissionResult
+from cms.grading.scoring import task_score, task_scored_submission
+from cms.grading.scoretypes import get_score_type, ScoreTypeGroup
 
 from .base import BaseHandler, require_permission
 
@@ -133,12 +132,12 @@ class RankingHandler(BaseHandler):
                 if show_teams:
                     row.append(p.team.name if p.team else "")
                 assert len(contest.tasks) == len(p.scores)
-                for t_score, t_partial in p.scores: # Custom field, see above
+                for t_score, t_partial in p.scores:  # Custom field, see above
                     row.append(t_score)
                     if include_partial:
                         row.append("*" if t_partial else "")
 
-                total_score, partial = p.total_score # Custom field, see above
+                total_score, partial = p.total_score  # Custom field, see above
                 row.append(total_score)
                 if include_partial:
                     row.append("*" if partial else "")
@@ -211,7 +210,7 @@ class DetailedResultsHandler(BaseHandler):
         max_score = 0
         for task in contest.tasks:
             dataset = task.active_dataset
-            scoretype = scoretypes.get_score_type(dataset=dataset)
+            scoretype = get_score_type(dataset=dataset)
             max_score += scoretype.max_score
 
         for p in sorted(contest.participations,
@@ -231,7 +230,7 @@ class DetailedResultsHandler(BaseHandler):
                 if partial:
                     partial_results = True
                 score = round(score, task.score_precision)
-                st = scoretypes.get_score_type(dataset=task.active_dataset)
+                st = get_score_type(dataset=task.active_dataset)
                 if not isinstance(st, ScoreTypeGroup):
                     raise Exception("Unsupported score type for task {0}"
                                     .format(task.name))

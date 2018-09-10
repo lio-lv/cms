@@ -37,9 +37,7 @@ import logging
 
 from cms import ServiceCoord, config
 from cms.io import Executor, TriggeredService, rpc_method
-from cms.db import SessionGen, Submission, Dataset
-from cms.grading.scoretypes import get_score_type
-from cms.service import get_submission_results
+from cms.db import SessionGen, Submission, Dataset, get_submission_results
 
 from cmscommon.datetime import make_datetime
 
@@ -102,7 +100,7 @@ class ScoringExecutor(Executor):
                                       operation.dataset_id))
 
             # Instantiate the score type.
-            score_type = get_score_type(dataset=dataset)
+            score_type = dataset.score_type_object
 
             # Compute score and fill it in the database.
             submission_result.score, \
@@ -217,10 +215,9 @@ class ScoringService(TriggeredService):
 
         with SessionGen() as session:
             submission_results = \
-                get_submission_results(contest_id,
+                get_submission_results(session, contest_id,
                                        participation_id, task_id,
-                                       submission_id, dataset_id,
-                                       session=session)
+                                       submission_id, dataset_id).all()
 
             for sr in submission_results:
                 if sr.scored():

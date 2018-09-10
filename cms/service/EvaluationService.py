@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
@@ -52,10 +52,8 @@ from sqlalchemy.orm import joinedload
 
 from cms import ServiceCoord, get_service_shards
 from cms.io import Executor, TriggeredService, rpc_method
-from cms.db import SessionGen, Dataset, Submission, UserTest
-from cms.db.filecacher import FileCacher
-from cms.service import get_datasets_to_judge, \
-    get_submissions, get_submission_results
+from cms.db import SessionGen, Digest, Dataset, Submission, UserTest, \
+    get_submissions, get_submission_results, get_datasets_to_judge
 from cms.grading.Job import JobGroup
 
 from .esoperations import ESOperation, get_relevant_operations, \
@@ -91,10 +89,6 @@ class EvaluationExecutor(Executor):
 
         # Lock used to guard the currently executing operations
         self._current_execution_lock = gevent.lock.RLock()
-
-        # Whether execute need to drop the currently executing
-        # operation.
-        self._drop_current = False
 
         for i in range(get_service_shards("Worker")):
             worker = ServiceCoord("Worker", i)
@@ -149,7 +143,6 @@ class EvaluationExecutor(Executor):
                 # re-enqueue it.
                 operation.side_data = (entry.priority, entry.timestamp)
                 self._currently_executing.append(operation)
-        res = None
         while len(self._currently_executing) > 0:
             self.pool.wait_for_workers()
             with self._current_execution_lock:
@@ -157,7 +150,6 @@ class EvaluationExecutor(Executor):
                     break
                 res = self.pool.acquire_worker(self._currently_executing)
                 if res is not None:
-                    self._drop_current = False
                     self._currently_executing = []
                     break
 
@@ -434,22 +426,27 @@ class EvaluationService(TriggeredService):
         job_group = None
         job_group_success = True
         if error is not None:
-            logger.error("Received error from Worker: `%s'.", error)
+            logger.error(
+                "Received error from Worker (see above), job group lost.")
             job_group_success = False
 
         else:
             try:
                 job_group = JobGroup.import_from_dict(data)
-            except:
+            except Exception:
                 logger.error("Couldn't build JobGroup for data %s.", data,
                              exc_info=True)
                 job_group_success = False
 
         if job_group_success:
             for job in job_group.jobs:
-                operation = ESOperation.from_dict(job.operation)
-                logger.info("`%s' completed. Success: %s.",
-                            operation, job.success)
+                operation = job.operation
+                if job.success:
+                    logger.info("`%s' succeeded.", operation)
+                else:
+                    logger.error("`%s' failed, see worker logs and (possibly) "
+                                 "sandboxes at '%s'.",
+                                 operation, " ".join(job.sandboxes))
                 if isinstance(to_ignore, list) and operation in to_ignore:
                     logger.info("`%s' result ignored as requested", operation)
                 else:
@@ -585,6 +582,14 @@ class EvaluationService(TriggeredService):
                 logger.warning(
                     "Integrity error while inserting worker result.",
                     exc_info=True)
+            except Exception:
+                # Defend against any exception. A poisonous results that fails
+                # here is attempted again without limits, thus can enter in
+                # all batches to write. Without the catch-all, it will prevent
+                # the whole batch to be written over and over. See issue #888.
+                logger.error(
+                    "Unexpected exception while inserting worker result.",
+                    exc_info=True)
 
     def write_results_one_row(self, session, object_result, operation, result):
         """Write to the DB a single result.
@@ -611,7 +616,7 @@ class EvaluationService(TriggeredService):
                     executable_digests = [
                         e.digest for e in
                         itervalues(object_result.executables)]
-                    if FileCacher.TOMBSTONE_DIGEST in executable_digests:
+                    if Digest.TOMBSTONE in executable_digests:
                         logger.info("Submission %d's compilation on dataset "
                                     "%d has been invalidated since the "
                                     "executable was the tombstone",
@@ -753,7 +758,7 @@ class EvaluationService(TriggeredService):
         elif not user_test_result.compiled():
             logger.warning("Worker failed when compiling user test "
                            "%d(%d).",
-                           user_test_result.submission_id,
+                           user_test_result.user_test_id,
                            user_test_result.dataset_id)
             if user_test_result.compilation_tries >= \
                     EvaluationService.MAX_USER_TEST_COMPILATION_TRIES:
@@ -892,18 +897,20 @@ class EvaluationService(TriggeredService):
             contest_id = self.contest_id
 
         with SessionGen() as session:
-            # When invalidating a dataset we need to know the task_id, otherwise
-            # get_submissions will return all the submissions of the contest.
+            # When invalidating a dataset we need to know the task_id,
+            # otherwise get_submissions will return all the submissions of
+            # the contest.
             if dataset_id is not None and task_id is None \
                     and submission_id is None:
                 task_id = Dataset.get_from_id(dataset_id, session).task_id
             # First we load all involved submissions.
             submissions = get_submissions(
+                session,
                 # Give contest_id only if all others are None.
                 contest_id
                 if {participation_id, task_id, submission_id} == {None}
                 else None,
-                participation_id, task_id, submission_id, session)
+                participation_id, task_id, submission_id).all()
 
             # Then we get all relevant operations, and we remove them
             # both from the queue and from the pool (i.e., we ignore
@@ -923,6 +930,7 @@ class EvaluationService(TriggeredService):
             # Then we find all existing results in the database, and
             # we remove them.
             submission_results = get_submission_results(
+                session,
                 # Give contest_id only if all others are None.
                 contest_id
                 if {participation_id,
@@ -934,7 +942,7 @@ class EvaluationService(TriggeredService):
                 # Provide the task_id only if the entire task has to be
                 # reevaluated and not only a specific dataset.
                 task_id if dataset_id is None else None,
-                submission_id, dataset_id, session)
+                submission_id, dataset_id).all()
             logger.info("Submission results to invalidate %s for: %d.",
                         level, len(submission_results))
             for submission_result in submission_results:

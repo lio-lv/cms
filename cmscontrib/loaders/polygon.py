@@ -32,6 +32,7 @@ import imp
 import io
 import logging
 import os
+import subprocess
 
 from datetime import datetime
 from datetime import timedelta
@@ -39,8 +40,7 @@ from datetime import timedelta
 import xml.etree.ElementTree as ET
 
 from cms import config
-from cms.db import Contest, User, Task, Statement, \
-    SubmissionFormatElement, Dataset, Manager, Testcase
+from cms.db import Contest, User, Task, Statement, Dataset, Manager, Testcase
 from cmscommon.crypto import build_password
 from cmscontrib import touch
 
@@ -120,7 +120,7 @@ class PolygonTaskLoader(TaskLoader):
         root = tree.getroot()
 
         args["name"] = name
-        args["title"] = root.find('names').find("name").attrib['value']
+        args["title"] = str(root.find('names').find("name").attrib['value'])
 
         if get_statement:
             args["statements"] = {}
@@ -136,7 +136,7 @@ class PolygonTaskLoader(TaskLoader):
                     args["statements"][lang] = Statement(lang, digest)
                     args["primary_statements"].append(lang)
 
-        args["submission_format"] = [SubmissionFormatElement("%s.%%l" % name)]
+        args["submission_format"] = ["%s.%%l" % name]
 
         # These options cannot be configured in the Polygon format.
         # Uncomment the following to set specific values for them.
@@ -161,7 +161,7 @@ class PolygonTaskLoader(TaskLoader):
         task_cms_conf = None
         if os.path.exists(task_cms_conf_path):
             logger.info("Found additional CMS options for task %s.", name)
-            with open(task_cms_conf_path, 'r') as f:
+            with io.open(task_cms_conf_path, 'rb') as f:
                 task_cms_conf = imp.load_module('cms_conf', f,
                                                 task_cms_conf_path,
                                                 ('.py', 'r', imp.PY_SOURCE))
@@ -177,11 +177,11 @@ class PolygonTaskLoader(TaskLoader):
 
             args = {}
             args["task"] = task
-            args["description"] = testset_name
+            args["description"] = str(testset_name)
             args["autojudge"] = False
 
             tl = float(testset.find('time-limit').text)
-            ml = float(testset.find('memory-limit').text)
+            ml = int(testset.find('memory-limit').text)
             args["time_limit"] = tl * 0.001
             args["memory_limit"] = ml // (1024 * 1024)
 
@@ -198,14 +198,18 @@ class PolygonTaskLoader(TaskLoader):
                 logger.info("Checker found, compiling")
                 checker_exe = os.path.join(
                     os.path.dirname(checker_src), "checker")
-                testlib_path = "/usr/local/include/cms/testlib.h"
+                testlib_path = "/usr/local/include/cms"
+                testlib_include = os.path.join(testlib_path, "testlib.h")
                 if not config.installed:
                     testlib_path = os.path.join(os.path.dirname(__file__),
-                                                "polygon", "testlib.h")
-                os.system("cat %s | \
-                    sed 's$testlib.h$%s$' | \
-                    g++ -x c++ -O2 -static -o %s -" %
-                          (checker_src, testlib_path, checker_exe))
+                                                "polygon")
+                code = subprocess.call(["g++", "-x", "c++", "-O2", "-static",
+                                        "-DCMS", "-I", testlib_path,
+                                        "-include", testlib_include,
+                                        "-o", checker_exe, checker_src])
+                if code != 0:
+                    logger.critical("Could not compile checker")
+                    return None
                 digest = self.file_cacher.put_file_from_path(
                     checker_exe,
                     "Manager for task %s" % name)

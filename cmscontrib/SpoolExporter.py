@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -46,10 +46,14 @@ import os
 import sys
 import time
 
+from sqlalchemy import not_
+
 from cms import utf8_decoder
-from cms.db import SessionGen, Contest, ask_for_contest
+from cms.db import SessionGen, Contest, ask_for_contest, Submission, \
+    Participation, get_submissions
 from cms.db.filecacher import FileCacher
-from cms.grading import languagemanager, task_score
+from cms.grading import languagemanager
+from cms.grading.scoring import task_score
 
 
 logger = logging.getLogger(__name__)
@@ -92,11 +96,10 @@ class SpoolExporter(object):
 
         with SessionGen() as session:
             self.contest = Contest.get_from_id(self.contest_id, session)
-            self.submissions = sorted(
-                (submission
-                 for submission in self.contest.get_submissions()
-                 if not submission.participation.hidden),
-                key=lambda submission: submission.timestamp)
+            self.submissions = \
+                get_submissions(session, contest_id=self.contest_id) \
+                .filter(not_(Participation.hidden)) \
+                .order_by(Submission.timestamp).all()
 
             # Creating users' directory.
             for participation in self.contest.participations:

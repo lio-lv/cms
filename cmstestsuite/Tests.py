@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Bernard Blackham <bernard@largestprime.net>
-# Copyright © 2013-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2013-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2014-2015 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2016 Masaki Hara <ackie.h.gmai@gmail.com>
 #
@@ -30,10 +30,19 @@ from future.builtins import *  # noqa
 import cmstestsuite.tasks.batch_stdio as batch_stdio
 import cmstestsuite.tasks.batch_fileio as batch_fileio
 import cmstestsuite.tasks.batch_fileio_managed as batch_fileio_managed
-import cmstestsuite.tasks.communication as communication
-import cmstestsuite.tasks.communication2 as communication2
+import cmstestsuite.tasks.communication_fifoio_stubbed \
+    as communication_fifoio_stubbed
+import cmstestsuite.tasks.communication_many_fifoio_stubbed \
+    as communication_many_fifoio_stubbed
+import cmstestsuite.tasks.communication_many_stdio_stubbed \
+    as communication_many_stdio_stubbed
+import cmstestsuite.tasks.communication_stdio as communication_stdio
+import cmstestsuite.tasks.communication_stdio_stubbed \
+    as communication_stdio_stubbed
 import cmstestsuite.tasks.outputonly as outputonly
 import cmstestsuite.tasks.outputonly_comparator as outputonly_comparator
+import cmstestsuite.tasks.twosteps as twosteps
+import cmstestsuite.tasks.twosteps_comparator as twosteps_comparator
 
 from cmstestsuite.Test import Test, CheckOverallScore, CheckCompilationFail, \
     CheckTimeout, CheckTimeoutWall, CheckNonzeroReturn
@@ -234,42 +243,124 @@ ALL_TESTS = [
          languages=ALL_LANGUAGES,
          checks=[CheckOverallScore(0, 100)]),
 
-    # Tasks with graders. Python and PHP are not yet supported.
+    # Tasks with graders. PHP is not yet supported.
 
     Test('managed-correct',
          task=batch_fileio_managed, filenames=['managed-correct.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA, LANG_C_SHARP),
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA,
+                    LANG_C_SHARP),
          checks=[CheckOverallScore(100, 100)]),
 
     Test('managed-incorrect',
          task=batch_fileio_managed, filenames=['managed-incorrect.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA, LANG_C_SHARP),
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA,
+                    LANG_C_SHARP),
          checks=[CheckOverallScore(0, 100)]),
 
     # Communication tasks. Python and PHP are not yet supported.
 
-    Test('communication-correct',
-         task=communication, filenames=['communication-correct.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA),
+    Test('communication-fifoio-correct',
+         task=communication_fifoio_stubbed,
+         filenames=['communication-stubbed-correct.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
          checks=[CheckOverallScore(100, 100)]),
 
-    Test('communication-incorrect',
-         task=communication, filenames=['communication-incorrect.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA),
+    Test('communication-fifoio-incorrect',
+         task=communication_fifoio_stubbed,
+         filenames=['communication-stubbed-incorrect.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(0, 100)]),
+
+    Test('communication-stdio-correct',
+         task=communication_stdio_stubbed,
+         filenames=['communication-stubbed-correct.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(100, 100)]),
+
+    Test('communication-stdio-incorrect',
+         task=communication_stdio_stubbed,
+         filenames=['communication-stubbed-incorrect.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(0, 100)]),
+
+    Test('communication-stdio-unstubbed-correct',
+         task=communication_stdio,
+         filenames=['communication-stdio-correct.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(100, 100)]),
+
+    Test('communication-stdio-unstubbed-incorrect',
+         task=communication_stdio,
+         filenames=['communication-stdio-incorrect.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
          checks=[CheckOverallScore(0, 100)]),
 
     # Communication tasks with two processes.
 
-    Test('communication2-correct',
-         task=communication2, filenames=['communication2-correct-user1.%l',
-                                         'communication2-correct-user2.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA),
+    Test('communication-many-fifoio-correct',
+         task=communication_many_fifoio_stubbed,
+         filenames=['communication-many-correct-user1.%l',
+                    'communication-many-correct-user2.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
          checks=[CheckOverallScore(100, 100)]),
 
-    Test('communication2-incorrect',
-         task=communication2, filenames=['communication2-incorrect-user1.%l',
-                                         'communication2-incorrect-user2.%l'],
-         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_JAVA),
+    Test('communication-many-fifoio-incorrect',
+         task=communication_many_fifoio_stubbed,
+         filenames=['communication-many-incorrect-user1.%l',
+                    'communication-many-incorrect-user2.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(0, 100)]),
+
+    Test('communication-many-stdio-correct',
+         task=communication_many_stdio_stubbed,
+         filenames=['communication-many-correct-user1.%l',
+                    'communication-many-correct-user2.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(100, 100)]),
+
+    Test('communication-many-stdio-incorrect',
+         task=communication_many_stdio_stubbed,
+         filenames=['communication-many-incorrect-user1.%l',
+                    'communication-many-incorrect-user2.%l'],
+         languages=(LANG_C, LANG_CPP, LANG_PASCAL, LANG_PYTHON, LANG_JAVA),
+         checks=[CheckOverallScore(0, 100)]),
+
+    # TwoSteps
+
+    Test('twosteps-correct',
+         task=twosteps, filenames=["twosteps-correct-first.%l",
+                                   "twosteps-correct-second.%l"],
+         languages=(LANG_C, ),
+         checks=[CheckOverallScore(100, 100)]),
+
+    Test('twosteps-half-correct',
+         task=twosteps, filenames=["twosteps-half-correct-first.%l",
+                                   "twosteps-correct-second.%l"],
+         languages=(LANG_C,),
+         checks=[CheckOverallScore(50, 100)]),
+
+    Test('twosteps-incorrect',
+         task=twosteps, filenames=["twosteps-incorrect-first.%l",
+                                   "twosteps-correct-second.%l"],
+         languages=(LANG_C,),
+         checks=[CheckOverallScore(0, 100)]),
+
+    Test('twosteps-comparator-correct',
+         task=twosteps_comparator, filenames=["twosteps-correct-first.%l",
+                                              "twosteps-correct-second.%l"],
+         languages=(LANG_C,),
+         checks=[CheckOverallScore(100, 100)]),
+
+    Test('twosteps-comparator-half-correct',
+         task=twosteps_comparator, filenames=["twosteps-half-correct-first.%l",
+                                              "twosteps-correct-second.%l"],
+         languages=(LANG_C,),
+         checks=[CheckOverallScore(50, 100)]),
+
+    Test('twosteps-comparator-incorrect',
+         task=twosteps_comparator, filenames=["twosteps-incorrect-first.%l",
+                                              "twosteps-correct-second.%l"],
+         languages=(LANG_C,),
          checks=[CheckOverallScore(0, 100)]),
 
     # Writing to files not allowed.
@@ -295,7 +386,8 @@ ALL_TESTS = [
          checks=[CheckOverallScore(0, 100)]),
 
     Test('write-forbidden-communication',
-         task=communication, filenames=['write-forbidden-communication.%l'],
+         task=communication_fifoio_stubbed,
+         filenames=['write-forbidden-communication.%l'],
          languages=(LANG_C,),
          checks=[CheckOverallScore(0, 100)]),
 

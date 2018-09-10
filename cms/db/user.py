@@ -39,12 +39,12 @@ from sqlalchemy.schema import Column, ForeignKey, CheckConstraint, \
     UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, Unicode, DateTime, \
     Interval
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY, CIDR
 
 from cmscommon.crypto import generate_random_password, build_password
 
-from . import Base, Contest, CastingArray, CodenameConstraint
+from . import CastingArray, Codename, Base, Contest
 
 
 class User(Base):
@@ -69,8 +69,7 @@ class User(Base):
 
     # Username and password to log in the CWS.
     username = Column(
-        Unicode,
-        CodenameConstraint("username"),
+        Codename,
         nullable=False,
         unique=True)
     password = Column(
@@ -104,9 +103,14 @@ class User(Base):
         nullable=False,
         default=[])
 
-    # Follows the description of the fields automatically added by
-    # SQLAlchemy.
-    # participations (list of Participation objects)
+    # These one-to-many relationships are the reversed directions of
+    # the ones defined in the "child" classes using foreign keys.
+
+    participations = relationship(
+        "Participation",
+        cascade = "all, delete-orphan",
+        passive_deletes = True,
+        back_populates="user")
 
 
 class Team(Base):
@@ -127,8 +131,7 @@ class Team(Base):
 
     # Team code (e.g. the ISO 3166-1 code of a country)
     code = Column(
-        Unicode,
-        CodenameConstraint("code"),
+        Codename,
         nullable=False,
         unique=True)
 
@@ -136,6 +139,12 @@ class Team(Base):
     name = Column(
         Unicode,
         nullable=False)
+
+    participations = relationship(
+        "Participation",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="team")
 
     # TODO: decide if the flag images will eventually be stored here.
     # TODO: (hopefully, the same will apply for faces in User).
@@ -152,7 +161,10 @@ class Participation(Base):
         Integer,
         primary_key=True)
 
-    # The user can log in CWS only from this IP address or subnet.
+    # If the IP lock is enabled the user can log into CWS only if their
+    # requests come from an IP address that belongs to any of these
+    # subnetworks. An empty list prevents the user from logging in,
+    # None disables the IP lock for the user.
     ip = Column(
         CastingArray(CIDR),
         nullable=True)
@@ -211,9 +223,7 @@ class Participation(Base):
         index=True)
     contest = relationship(
         Contest,
-        backref=backref("participations",
-                        cascade="all, delete-orphan",
-                        passive_deletes=True))
+        back_populates="participations")
 
     # User (id and object) which is participating.
     user_id = Column(
@@ -224,9 +234,7 @@ class Participation(Base):
         index=True)
     user = relationship(
         User,
-        backref=backref("participations",
-                        cascade="all, delete-orphan",
-                        passive_deletes=True))
+        back_populates="participations")
     __table_args__ = (UniqueConstraint('contest_id', 'user_id'),)
 
     # Team (id and object) that the user is representing with this
@@ -238,19 +246,42 @@ class Participation(Base):
         nullable=True)
     team = relationship(
         Team,
-        backref=backref("participations",
-                        cascade="all, delete-orphan",
-                        passive_deletes=True))
+        back_populates="participations")
 
-    # Follows the description of the fields automatically added by
-    # SQLAlchemy.
-    # messages (list of Message objects)
-    # questions (list of Question objects)
-    # submissions (list of Submission objects)
-    # user_tests (list of UserTest objects)
+    # These one-to-many relationships are the reversed directions of
+    # the ones defined in the "child" classes using foreign keys.
 
-    # Moreover, we have the following methods.
-    # get_tokens (defined in __init__.py)
+    messages = relationship(
+        "Message",
+        order_by="[Message.timestamp]",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="participation")
+
+    questions = relationship(
+        "Question",
+        order_by="[Question.question_timestamp, Question.reply_timestamp]",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="participation")
+
+    submissions = relationship(
+        "Submission",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="participation")
+
+    user_tests = relationship(
+        "UserTest",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="participation")
+
+    printjobs = relationship(
+        "PrintJob",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="participation")
 
 
 class Message(Base):
@@ -287,10 +318,7 @@ class Message(Base):
         index=True)
     participation = relationship(
         Participation,
-        backref=backref('messages',
-                        order_by=[timestamp],
-                        cascade="all, delete-orphan",
-                        passive_deletes=True))
+        back_populates="messages")
 
 
 class Question(Base):
@@ -299,6 +327,9 @@ class Question(Base):
 
     """
     __tablename__ = 'questions'
+
+    MAX_SUBJECT_LENGTH = 50
+    MAX_TEXT_LENGTH = 2000
 
     # Auto increment primary key.
     id = Column(
@@ -347,7 +378,4 @@ class Question(Base):
         index=True)
     participation = relationship(
         Participation,
-        backref=backref('questions',
-                        order_by=[question_timestamp, reply_timestamp],
-                        cascade="all, delete-orphan",
-                        passive_deletes=True))
+        back_populates="questions")

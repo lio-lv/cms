@@ -38,18 +38,18 @@ from future.builtins import *  # noqa
 import json
 import logging
 import string
+from future.moves.urllib.parse import urljoin, urlsplit
 
 import gevent
 import gevent.queue
-
 import requests
 import requests.exceptions
-from future.moves.urllib.parse import urljoin, urlsplit
+from sqlalchemy import not_
 
 from cms import config
 from cms.io import Executor, QueueItem, TriggeredService, rpc_method
-from cms.db import SessionGen, Contest, Task, Submission
-from cms.grading.scoretypes import get_score_type
+from cms.db import SessionGen, Contest, Participation, Task, Submission, \
+    get_submissions
 from cmscommon.datetime import make_timestamp
 
 
@@ -282,15 +282,11 @@ class ProxyService(TriggeredService):
         """
         counter = 0
         with SessionGen() as session:
-            contest = Contest.get_from_id(self.contest_id, session)
+            submissions = get_submissions(session, contest_id=self.contest_id) \
+                .filter(not_(Participation.hidden)) \
+                .filter(Submission.official).all()
 
-            for submission in contest.get_submissions():
-                if submission.participation.hidden:
-                    continue
-
-                if not submission.official:
-                    continue
-
+            for submission in submissions:
                 # The submission result can be None if the dataset has
                 # been just made live.
                 sr = submission.get_result()
@@ -358,7 +354,7 @@ class ProxyService(TriggeredService):
             tasks = dict()
 
             for task in contest.tasks:
-                score_type = get_score_type(dataset=task.active_dataset)
+                score_type = task.active_dataset.score_type_object
                 tasks[encode_id(task.name)] = {
                     "short_name": task.name,
                     "name": task.title,

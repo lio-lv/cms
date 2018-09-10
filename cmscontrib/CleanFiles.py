@@ -4,6 +4,7 @@
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
 # Copyright © 2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -36,9 +37,7 @@ import argparse
 import logging
 import sys
 
-from cms.db import Attachment, Executable, File, Manager, PrintJob, \
-    SessionGen, Statement, Testcase, UserTest, UserTestExecutable, \
-    UserTestFile, UserTestManager, UserTestResult
+from cms.db import SessionGen, Digest, Executable, enumerate_files
 from cms.db.filecacher import FileCacher
 
 
@@ -48,9 +47,9 @@ logger = logging.getLogger()
 def make_tombstone(session):
     count = 0
     for exe in session.query(Executable).all():
-        if exe.digest != FileCacher.TOMBSTONE_DIGEST:
+        if exe.digest != Digest.TOMBSTONE:
             count += 1
-        exe.digest = FileCacher.TOMBSTONE_DIGEST
+        exe.digest = Digest.TOMBSTONE
     logger.info("Replaced %d executables with the tombstone.", count)
 
 
@@ -59,19 +58,9 @@ def clean_files(session, dry_run):
     files = set(file[0] for file in filecacher.list())
     logger.info("A total number of %d files are present in the file store",
                 len(files))
-    for cls in [Attachment, Executable, File, Manager, PrintJob,
-                Statement, Testcase, UserTest, UserTestExecutable,
-                UserTestFile, UserTestManager, UserTestResult]:
-        for col in ["input", "output", "digest"]:
-            if hasattr(cls, col):
-                found_digests = set()
-                digests = session.query(cls).all()
-                digests = [getattr(obj, col) for obj in digests]
-                found_digests |= set(digests)
-                found_digests.discard(FileCacher.TOMBSTONE_DIGEST)
-                logger.info("Found %d digests while scanning %s.%s",
-                            len(found_digests), cls.__name__, col)
-                files -= found_digests
+    found_digests = enumerate_files(session)
+    logger.info("Found %d digests while scanning", len(found_digests))
+    files -= found_digests
     logger.info("%d digests are orphan.", len(files))
     total_size = 0
     for orphan in files:

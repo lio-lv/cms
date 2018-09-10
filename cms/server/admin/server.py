@@ -37,20 +37,18 @@ from six import iterkeys, itervalues
 import locale
 
 import logging
-import pkg_resources
 
 from sqlalchemy import func, not_
 
 from cmscommon.binary import hex_to_bin
 from cms import config, ServiceCoord, get_service_shards
 from cms.db import SessionGen, Dataset, Submission, SubmissionResult, Task
-from cms.db.filecacher import FileCacher
 from cms.io import WebService, rpc_method
 from cms.service import EvaluationService
 
-from .handlers import HANDLERS
-from .handlers import views
 from .authentication import AWSAuthMiddleware
+from .jinja2_toolbox import AWS_ENVIRONMENT
+from .handlers import HANDLERS
 from .rpc_authorization import rpc_authorization_checker
 
 
@@ -63,9 +61,6 @@ class AdminWebServer(WebService):
     """
     def __init__(self, shard):
         parameters = {
-            "ui_modules": views,
-            "template_path": pkg_resources.resource_filename(
-                "cms.server.admin", "templates"),
             "static_files": [("cms.server", "static"),
                              ("cms.server.admin", "static")],
             "cookie_secret": hex_to_bin(config.secret_key),
@@ -89,10 +84,11 @@ class AdminWebServer(WebService):
         except locale.Error:
             logger.warning("Failed to set lv_LV.UTF-8 locale")
 
+        self.jinja2_environment = AWS_ENVIRONMENT
+
         # A list of pending notifications.
         self.notifications = []
 
-        self.file_cacher = FileCacher(self)
         self.admin_web_server = self.connect_to(
             ServiceCoord("AdminWebServer", 0))
         self.evaluation_service = self.connect_to(

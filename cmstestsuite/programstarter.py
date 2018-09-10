@@ -3,7 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Bernard Blackham <bernard@largestprime.net>
-# Copyright © 2013-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2013-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2013-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Luca Versari <veluca93@gmail.com>
 # Copyright © 2014 William Di Luigi <williamdiluigi@gmail.com>
@@ -35,6 +35,8 @@ import io
 import json
 import logging
 import os
+import psutil
+import re
 import signal
 import socket
 import subprocess
@@ -43,8 +45,10 @@ import time
 from future.moves.urllib.parse import urlsplit
 
 from cmscommon.datetime import monotonic_time
-from cmstestsuite import CONFIG, TestException, coverage_cmdline
+from cmstestsuite import CONFIG, TestException
+from cmstestsuite.coverage import coverage_cmdline
 from cmstestsuite.functionaltestframework import FunctionalTestFramework
+from cmstestsuite.profiling import profiling_cmdline
 
 
 logger = logging.getLogger(__name__)
@@ -99,11 +103,13 @@ class RemoteService(object):
 class Program(object):
     """An instance of a program, which might be running or not."""
 
-    def __init__(self, cms_config, service_name, shard=0, contest=None):
+    def __init__(self, cms_config, service_name, shard=0, contest=None,
+                 cpu_limit=None):
         self.cms_config = cms_config
         self.service_name = service_name
         self.shard = shard
         self.contest = contest
+        self.cpu_limit = cpu_limit
         self.instance = None
         self.healthy = False
 
@@ -122,9 +128,21 @@ class Program(object):
             args += ["-c", "%s" % self.contest]
 
         self.instance = self._spawn(args)
+        # In case the test ends prematurely due to errors and stop() is not
+        # called, this child process would continue running, so we register an
+        # exit handler to kill it. atexit handlers are LIFO, so the first
+        # handler tries to terminate gracefully, the second kills immediately.
+        # This is useful in case the user hits Ctrl-C twice to avoid zombies.
+        atexit.register(self.kill)
+        atexit.register(self.wait_or_kill)
+
         t = threading.Thread(target=self._check_with_backoff)
         t.daemon = True
         t.start()
+
+    @property
+    def coord(self):
+        return "%s/%s" % (self.service_name, self.shard)
 
     @property
     def running(self):
@@ -132,36 +150,61 @@ class Program(object):
         self._check()
         return self.healthy
 
+    def log_cpu_times(self):
+        """Log usr and sys CPU, and busy percentage over total running time."""
+        try:
+            p = psutil.Process(self.instance.pid)
+            times = p.cpu_times()
+            total_time_ratio = \
+                (times.user + times.system) / (time.time() - p.create_time())
+            logger.info(
+                "Total CPU times for %s: %.2lf (user), %.2lf (sys) = %.2lf%%",
+                self.coord, times.user, times.system, 100 * total_time_ratio)
+        except psutil.NoSuchProcess:
+            logger.info("Cannot compute CPU times for %s", self.coord)
+
     def stop(self):
-        """Quit gracefully. Or not: if the quit RPC does not work, kill."""
+        """Ask the program to quit via RPC.
+
+        Callers should call wait_or_kill() after to make sure the program
+        really terminates.
+
+        """
+        logger.info("Asking %s to terminate...", self.coord)
         if self.service_name != "RankingWebServer":
             # Try to terminate gracefully (RWS does not have a way to do it).
-            logger.info("Asking %s/%s to terminate...",
-                        self.service_name, self.shard)
             rs = RemoteService(self.cms_config, self.service_name, self.shard)
             rs.call("quit", {"reason": "from test harness"})
+        else:
+            # For RWS, we use Ctrl-C.
+            self.instance.send_signal(signal.SIGINT)
 
-        # If it didn't understand, use bad manners.
-        self._check()
-        if self.healthy:
-            logger.info("Interrupting %s/%s.", self.service_name, self.shard)
+    def wait_or_kill(self):
+        """Wait for the program to terminate, or kill it after 5s."""
+        if self.instance.poll() is None:
+            # We try one more time to kill gracefully using Ctrl-C.
+            logger.info("Interrupting %s and waiting...", self.coord)
             self.instance.send_signal(signal.SIGINT)
             # FIXME on py3 this becomes self.instance.wait(timeout=5)
             t = monotonic_time()
             while monotonic_time() - t < 5:
                 if self.instance.poll() is not None:
+                    logger.info("Terminated %s.", self.coord)
                     break
                 time.sleep(0.1)
             else:
-                logger.info("Killing %s/%s.", self.service_name, self.shard)
-                self.instance.kill()
+                self.kill()
+
+    def kill(self):
+        """Kill the program."""
+        if self.instance.poll() is None:
+            logger.info("Killing %s.", self.coord)
+            self.instance.kill()
 
     def _check_with_backoff(self):
         """Check and wait that the service is healthy."""
         self.healthy = False
-        attempts = 0
-        while attempts < _MAX_ATTEMPTS:
-            attempts += 1
+        for attempts in range(_MAX_ATTEMPTS):
             self._check()
             if not self.healthy:
                 time.sleep(0.2 * (1.2 ** attempts))
@@ -169,8 +212,7 @@ class Program(object):
                 return
 
         # Service did not start.
-        raise TestException("Failed to bring up service %s/%s" %
-                            (self.service_name, self.shard))
+        raise TestException("Failed to bring up service %s" % self.coord)
 
     def _check(self):
         """Check that the program is healthy and set the healthy bit.
@@ -216,21 +258,14 @@ class Program(object):
         sock.connect((url.hostname, url.port))
         sock.close()
 
-    @staticmethod
-    def _spawn(cmdline):
+    def _spawn(self, cmdline):
         """Execute a python application."""
-
-        def kill(job):
-            try:
-                job.kill()
-            except OSError:
-                pass
+        cmdline = coverage_cmdline(cmdline)
+        cmdline = profiling_cmdline(
+            cmdline, "%s-%d" % (self.service_name, self.shard or 0))
 
         if CONFIG["VERBOSITY"] >= 1:
             logger.info("$ %s", " ".join(cmdline))
-
-        if CONFIG["TEST_DIR"] is not None:
-            cmdline = coverage_cmdline(cmdline)
 
         if CONFIG["VERBOSITY"] >= 3:
             stdout = None
@@ -238,15 +273,22 @@ class Program(object):
         else:
             stdout = io.open(os.devnull, "wb")
             stderr = stdout
-        job = subprocess.Popen(cmdline, stdout=stdout, stderr=stderr)
-        atexit.register(lambda: kill(job))
-        return job
+        instance = subprocess.Popen(cmdline, stdout=stdout, stderr=stderr)
+        if self.cpu_limit is not None:
+            logger.info("Limiting %s to %d%% CPU time",
+                        self.coord, self.cpu_limit)
+            # cputool terminates on its own when the main program terminates.
+            subprocess.Popen(["cputool", "-c", str(self.cpu_limit),
+                              "-p", str(instance.pid)])
+        return instance
 
 
 class ProgramStarter(object):
     """Utility to keep track of all programs started."""
 
-    def __init__(self):
+    def __init__(self, cpu_limits=None):
+        self.cpu_limits = cpu_limits if cpu_limits is not None else []
+
         self.framework = FunctionalTestFramework()
         self.cms_config = self.framework.get_cms_config()
 
@@ -256,9 +298,20 @@ class ProgramStarter(object):
         # Map Program: check_function
         self._check_to_perform = {}
 
+    def _cpu_limit_for_service(self, service_name):
+        limit = None
+        for regex, l in self.cpu_limits:
+            if re.match(regex, service_name):
+                if limit is None:
+                    limit = l
+                limit = min(limit, l)
+        return limit
+
     def start(self, service_name, shard=0, contest=None):
         """Start a CMS service."""
-        p = Program(self.cms_config, service_name, shard, contest)
+        cpu_limit = self._cpu_limit_for_service(service_name)
+        p = Program(self.cms_config, service_name, shard, contest,
+                    cpu_limit=cpu_limit)
         p.start()
         self._programs[(service_name, shard, contest)] = p
 
@@ -266,9 +319,7 @@ class ProgramStarter(object):
         return len([p for p in itervalues(self._programs) if not p.healthy])
 
     def wait(self):
-        attempts = 0
-        while attempts <= _MAX_ATTEMPTS:
-            attempts += 1
+        for attempts in range(_MAX_ATTEMPTS):
             unhealthy = self.count_unhealthy()
             if unhealthy == 0:
                 logger.info("All healthy! Continuing.")
@@ -276,20 +327,13 @@ class ProgramStarter(object):
             logger.info("Still %s unhealthy.", unhealthy)
             time.sleep(0.2 * (1.2 ** attempts))
         raise TestException(
-            "Failed to bring up services: %s" %
-            ", ".join("%s/%s" % (p.service_name, p.shard)
-                      for p in itervalues(self._programs) if not p.healthy))
-
-    def restart(self, service_name, shard=0, contest=None):
-        p = self._programs[(service_name, shard, contest)]
-        p.stop()
-        p.start()
-
-    def stop(self, service_name, shard=0, contest=None):
-        p = self._programs[(service_name, shard, contest)]
-        p.stop()
-        del self._programs[(service_name, shard, contest)]
+            "Failed to bring up services: %s" % ", ".join(
+                p.coord for p in itervalues(self._programs) if not p.healthy))
 
     def stop_all(self):
         for p in itervalues(self._programs):
+            p.log_cpu_times()
+        for p in itervalues(self._programs):
             p.stop()
+        for p in itervalues(self._programs):
+            p.wait_or_kill()
