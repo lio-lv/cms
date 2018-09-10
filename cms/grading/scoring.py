@@ -40,7 +40,7 @@ from cmscommon.constants import SCORE_MODE_MAX, SCORE_MODE_MAX_TOKENED_LAST
 
 
 __all__ = [
-    "compute_changes_for_dataset", "task_score",
+    "compute_changes_for_dataset", "task_score", "task_scored_submission"
 ]
 
 
@@ -118,7 +118,6 @@ def task_score(participation, task):
         all submissions of the participation in the task have been scored.
 
     """
-
     score, partial, _ = task_scored_submission(participation, task)
     return score, partial
 
