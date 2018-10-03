@@ -42,8 +42,7 @@ from cmscommon.constants import \
 
 
 __all__ = [
-    "compute_changes_for_dataset", "task_score",
-    "ScoredSubmission"
+    "compute_changes_for_dataset", "task_score", "ScoredSubmission"
 ]
 
 
@@ -221,12 +220,12 @@ def _task_score_max_tokened_last(score_details_tokened, *, submission=None):
                     max_tokened_score, max_tokened_submission = score, s
 
     if max_tokened_score > last_score:
-        score, sub = max_tokened_score, max_tokened_submission
+        score, s = max_tokened_score, max_tokened_submission
     else:
-        score, sub = last_score, last_submission
+        score, s = last_score, last_submission
 
     if submission:
-        submission.s = sub
+        submission.s = s
 
     return score
 
