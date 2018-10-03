@@ -42,7 +42,7 @@ import locale
 from sqlalchemy.orm import joinedload
 
 from cms.db import Contest, SubmissionResult
-from cms.grading.scoring import task_score, task_scored_submission
+from cms.grading.scoring import task_score, ScoredSubmission
 from cms.grading.scoretypes import get_score_type, ScoreTypeGroup
 
 from .base import BaseHandler, require_permission
@@ -226,7 +226,8 @@ class DetailedResultsHandler(BaseHandler):
             total_score = 0
             task_results = []
             for task in contest.tasks:
-                score, partial, submission = task_scored_submission(p, task)
+                submission = ScoredSubmission()
+                score, partial = task_score(p, task, submission=submission)
                 if partial:
                     partial_results = True
                 score = round(score, task.score_precision)
@@ -239,8 +240,8 @@ class DetailedResultsHandler(BaseHandler):
                 total_score += score
 
                 test_results = []
-                if submission:
-                    sr = submission.get_result(task.active_dataset)
+                if submission.s:
+                    sr = submission.s.get_result(task.active_dataset)
                     if sr:
                         status = sr.get_status()
                     else:

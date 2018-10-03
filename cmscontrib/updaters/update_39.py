@@ -17,19 +17,37 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""A class to update a dump created by CMS.
+
+Used by DumpImporter and DumpUpdater.
+
+Add default values (null) to the new admin field in questions, messages and
+announcements.
+
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from future.builtins.disabled import *  # noqa
 from future.builtins import *  # noqa
+from six import iteritems
 
 
-# Task score modes.
+class Updater(object):
 
-# Maximum score amongst all submissions.
-SCORE_MODE_MAX = "max"
-# Sum of maximum score for each subtask over all submissions.
-SCORE_MODE_MAX_SUBTASK = "max_subtask"
-# Maximum score among all tokened submissions and the last submission.
-SCORE_MODE_MAX_TOKENED_LAST = "max_tokened_last"
+    def __init__(self, data):
+        assert data["_version"] == 38
+        self.objs = data
+
+    def run(self):
+        for k, v in iteritems(self.objs):
+            if k.startswith("_"):
+                continue
+            if v["_class"] == "Question" \
+                    or v["_class"] == "Message" \
+                    or v["_class"] == "Announcement":
+                v["admin"] = None
+
+        return self.objs
