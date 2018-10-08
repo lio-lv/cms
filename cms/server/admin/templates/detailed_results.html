@@ -1,5 +1,3 @@
-{% from locale import format_string %}
-{% from cms.db import SubmissionResult %}
 <!DOCTYPE html>
 <html lang="lv">
   <head>
@@ -36,7 +34,7 @@
     <h1>{{ result['participation'].user.first_name }} {{ result['participation'].user.last_name }}</h1>
   {% if result['participation'].team %}
     <h2>{{ result['participation'].team.name }}</h2>
-  {% end %}
+  {% endif %}
     <p>Punkti kopā: {{ format_score(result['total_score'], result['max_score'], contest.score_precision) }}</p>
   {% for task in result['tasks'] %}
     <h2>{{ task['name'] }}</h2>
@@ -51,17 +49,17 @@
         </thead>
         <tbody>
       {% for group in task['test_results'] %}
-        {% set first = True %}
+        {% set first = true %}
         {% for test in group['testcases'] %}
-          <tr {% if first %} class="first-row" {% end %}>
+          <tr {% if first %} class="first-row" {% endif %}>
             <td>{{test['idx']}}</td><td>{{test['text']}}</td><td class="number">{{ format_string("%.3f", test['time']) }}</td><td class="number">{{ format_string("%.2f", test['memory'] / 10**6) }}</td>
           {% if first %}
-            <td rowspan="{{len(group['testcases'])}}" class="number">{{ format_score(group['score'], group['max_score'], task['task'].score_precision) }}</td>
-          {% end %}
-          {% set first = False %}
+            <td rowspan="{{group['testcases']|length}}" class="number">{{ format_score(group['score'], group['max_score'], task['task'].score_precision) }}</td>
+          {% endif %}
+          {% set first = false %}
           </tr>
-        {% end %}
-      {% end %}
+        {% endfor %}
+      {% endif %}
         </tbody>
       </table>
     </div>
@@ -69,9 +67,9 @@
     <p>Kompilēšanas kļūda.</p>
     {% else %}
     <p>Testēšana nav pabeigta.</p>
-    {% end %}
-  {% end %}
+    {% endif %}
+  {% endfor %}
   <div class="pagebreak"></div>
-{% end %}
+{% endfor %}
   </body>
 </html>

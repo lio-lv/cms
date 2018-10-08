@@ -1,12 +1,11 @@
-{% extends base.html %}
+{% extends "base.html" %}
 
 {% block core %}
 
 <h1>Import participation</h1>
 
-
 <form enctype="multipart/form-data" action="{{ url("contest", contest.id, "users", "import") }}" method="POST">
-{% module xsrf_form_html() %}
+{{ xsrf_form_html|safe }}
   <table>
     <tr>
       <td>
@@ -34,4 +33,4 @@
 </form>
 <div class="hr"></div>
 
-{% end %}
+{% endblock %}

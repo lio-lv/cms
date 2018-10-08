@@ -32,6 +32,7 @@ from future.builtins.disabled import *  # noqa
 from future.builtins import *  # noqa
 
 from jinja2 import PackageLoader
+from locale import format_string
 
 from cms.grading.languagemanager import LANGUAGES
 from cms.grading.scoretypes import SCORE_TYPES
@@ -55,6 +56,7 @@ def instrument_cms_toolbox(env):
     env.globals["LANGUAGES"] = LANGUAGES
     env.globals["get_hex_random_key"] = get_hex_random_key
     env.globals["parse_authentication"] = safe_parse_authentication
+    env.globals["format_string"] = format_string
 
 
 def instrument_formatting_toolbox(env):

@@ -1,4 +1,4 @@
-{% extends base.html %}
+{% extends "base.html" %}
 
 {% block core %}
 
@@ -6,7 +6,7 @@
 
 <div id="something">
   <form enctype="multipart/form-data" action="{{ url("users", "import") }}" method="POST">
-  {% module xsrf_form_html() %}
+  {{ module xsrf_form_html|safe }}
     <input type="hidden" name="action" value="save">
     <table class="bordered">
       <thead>
@@ -35,7 +35,7 @@
                 {% else %}
                   <input type="hidden" name="password" value="{{ u.password }}">
                   &#x2713;
-                {% end %}
+                {% endif %}
                </td>
             </tr>
           {% else %}
@@ -47,8 +47,8 @@
               <td>{{ u.email if u.email else '' }}</td>
               <td>{{ u'\u2713' if u.password else  u'\u2717'  }}</td>
             </tr>
-          {% end %}
-        {% end %}
+          {% endif %}
+        {% endfor %}
       </tbody>
     </table>
     <input type="submit" value="Save" />
@@ -56,5 +56,4 @@
   <div class="hr"></div>
 </div>
 
-
-{% end %}
+{% endblock %}

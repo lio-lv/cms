@@ -1,4 +1,4 @@
-{% extends base.html %}
+{% extends "base.html" %}
 
 {% block core %}
 
@@ -6,7 +6,7 @@
 
 <div id="something">
   <form enctype="multipart/form-data" action="{{ url("users", "import") }}" method="POST">
-  {% module xsrf_form_html() %}
+  {{ xsrf_form_html|safe }}
     <table>
       <tr>
         <td>
@@ -35,4 +35,4 @@
   <div class="hr"></div>
 </div>
 
-{% end %}
+{% endblock %}
