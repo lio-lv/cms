@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -27,14 +26,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Procedures used by CWS to accept submissions and user tests."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, itervalues, iteritems
 
 import logging
 
@@ -150,7 +141,7 @@ def accept_submission(sql_session, file_cacher, participation, task, timestamp,
             N_("Please select the correct files."))
 
     digests = dict()
-    missing_codenames = required_codenames.difference(iterkeys(files))
+    missing_codenames = required_codenames.difference(files.keys())
     if len(missing_codenames) > 0:
         if task.active_dataset.task_type_object.ALLOW_PARTIAL_SUBMISSION:
             digests = fetch_file_digests_from_previous_submission(
@@ -162,7 +153,7 @@ def accept_submission(sql_session, file_cacher, participation, task, timestamp,
                 N_("Please select the correct files."))
 
     if any(len(content) > config.max_submission_length
-           for content in itervalues(files)):
+           for content in files.values()):
         raise UnacceptableSubmission(
             N_("Submission too big!"),
             N_("Each source file must be at most %d bytes long.") %
@@ -179,7 +170,7 @@ def accept_submission(sql_session, file_cacher, participation, task, timestamp,
 
     # We now have to send all the files to the destination...
     try:
-        for codename, content in iteritems(files):
+        for codename, content in files.items():
             digest = file_cacher.put_file_content(
                 content,
                 "Submission file %s sent by %s at %d." % (
@@ -206,7 +197,7 @@ def accept_submission(sql_session, file_cacher, participation, task, timestamp,
         official=official)
     sql_session.add(submission)
 
-    for codename, digest in iteritems(digests):
+    for codename, digest in digests.items():
         sql_session.add(File(
             filename=codename, digest=digest, submission=submission))
 
@@ -314,7 +305,7 @@ def accept_user_test(sql_session, file_cacher, participation, task, timestamp,
             N_("Please select the correct files."))
 
     digests = dict()
-    missing_codenames = required_codenames.difference(iterkeys(files))
+    missing_codenames = required_codenames.difference(files.keys())
     if len(missing_codenames) > 0:
         if task.active_dataset.task_type_object.ALLOW_PARTIAL_SUBMISSION:
             digests = fetch_file_digests_from_previous_submission(
@@ -331,7 +322,7 @@ def accept_user_test(sql_session, file_cacher, participation, task, timestamp,
             N_("Please select the correct files."))
 
     if any(len(content) > config.max_submission_length
-           for codename, content in iteritems(files)
+           for codename, content in files.items()
            if codename != "input"):
         raise UnacceptableUserTest(
             N_("Test too big!"),
@@ -354,7 +345,7 @@ def accept_user_test(sql_session, file_cacher, participation, task, timestamp,
 
     # We now have to send all the files to the destination...
     try:
-        for codename, content in iteritems(files):
+        for codename, content in files.items():
             digest = file_cacher.put_file_content(
                 content,
                 "Test file %s sent by %s at %d." % (
@@ -381,7 +372,7 @@ def accept_user_test(sql_session, file_cacher, participation, task, timestamp,
         task=task)
     sql_session.add(user_test)
 
-    for codename, digest in iteritems(digests):
+    for codename, digest in digests.items():
         if codename == "input":
             continue
         if codename in task.submission_format:

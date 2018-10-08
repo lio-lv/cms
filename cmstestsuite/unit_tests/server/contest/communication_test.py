@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -20,14 +19,6 @@
 """Tests for communication functions.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-import six
 
 import unittest
 from datetime import timedelta
@@ -141,13 +132,13 @@ class TestGetCommunications(DatabaseMixin, unittest.TestCase):
 
         """
         for test_time in range(test_interval):
-            six.assertCountEqual(
-                self, self.call(test_time),
+            self.assertCountEqual(
+                self.call(test_time),
                 res if ts <= test_time else [])
         for test_time_after in range(test_interval):
             for test_time_until in range(test_time_after + 1, test_interval):
-                six.assertCountEqual(
-                    self, self.call(test_time_until, after=test_time_after),
+                self.assertCountEqual(
+                    self.call(test_time_until, after=test_time_after),
                     res if test_time_after < ts <= test_time_until else [])
 
     def test_no_elements(self):

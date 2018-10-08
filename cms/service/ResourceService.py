@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -26,23 +25,12 @@ that saves the resources usage in that machine.
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import PY3, iteritems
-
 import logging
 import os
 import re
 import time
 from collections import defaultdict, deque
-if PY3:
-    from shlex import quote as shell_quote
-else:
-    from pipes import quote as shell_quote
+from shlex import quote as shell_quote
 
 import psutil
 
@@ -87,7 +75,7 @@ class ProcessMatcher(object):
         if self._procs is None:
             self._procs = ProcessMatcher._get_interesting_running_processes()
         shards = self._procs.get(service.name, {})
-        for shard, proc in iteritems(shards):
+        for shard, proc in shards.items():
             if get_safe_shard(service.name, shard) == service.shard:
                 logger.debug("Found %s", service)
                 if cpu_times is not None:

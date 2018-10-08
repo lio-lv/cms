@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the ImportContest script"""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-import six
 
 import unittest
 
@@ -147,11 +138,11 @@ class TestImportContest(DatabaseMixin, unittest.TestCase):
             c = db_contests[0]
             self.assertEqual(c.name, name)
             self.assertEqual(c.description, description)
-            six.assertCountEqual(self, [(t.name, t.title) for t in c.tasks],
-                                 task_names_and_titles)
-            six.assertCountEqual(self, [(u.user.username, u.user.last_name)
-                                        for u in c.participations],
-                                 usernames_and_last_names)
+            self.assertCountEqual([(t.name, t.title) for t in c.tasks],
+                                  task_names_and_titles)
+            self.assertCountEqual([(u.user.username, u.user.last_name)
+                                   for u in c.participations],
+                                  usernames_and_last_names)
 
     def assertSubmissionCount(self, count):
         """Assert that we have that many submissions in the DB"""

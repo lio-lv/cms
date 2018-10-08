@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -26,14 +25,6 @@ Add the feedback_level field for tasks. The default for new tasks is
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems
-
 from cms import FEEDBACK_LEVEL_FULL
 
 
@@ -44,7 +35,7 @@ class Updater(object):
         self.objs = data
 
     def run(self):
-        for k, v in iteritems(self.objs):
+        for k, v in self.objs.items():
             if k.startswith("_"):
                 continue
             if v["_class"] == "Task":

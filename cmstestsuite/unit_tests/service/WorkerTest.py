@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2013-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -22,16 +21,10 @@
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
+import unittest
+from unittest.mock import Mock, call
 
 import gevent
-import unittest
-from mock import Mock, call
 
 from cmstestsuite.unit_tests.testidgenerator import \
     unique_long_id, unique_unicode_id

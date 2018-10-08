@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -28,14 +27,6 @@
 """Manage translations and localization stuff.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-import six
 
 import copy
 import logging
@@ -91,16 +82,10 @@ class Translation(object):
         return self.locale.display_name
 
     def gettext(self, msgid):
-        if six.PY3:
-            return self.translation.gettext(msgid)
-        else:
-            return self.translation.ugettext(msgid)
+        return self.translation.gettext(msgid)
 
     def ngettext(self, msgid1, msgid2, n):
-        if six.PY3:
-            return self.translation.ngettext(msgid1, msgid2, n)
-        else:
-            return self.translation.ungettext(msgid1, msgid2, n)
+        return self.translation.ngettext(msgid1, msgid2, n)
 
     def format_datetime(self, dt, timezone):
         """Return the date and time of dt.
@@ -276,10 +261,7 @@ class Translation(object):
             return code
 
     def translate_mimetype(self, mimetype):
-        if six.PY3:
-            return self.mimetype_translation.gettext(mimetype)
-        else:
-            return self.mimetype_translation.ugettext(mimetype)
+        return self.mimetype_translation.gettext(mimetype)
 
 
 DEFAULT_TRANSLATION = Translation("en")

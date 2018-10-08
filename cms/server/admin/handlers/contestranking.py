@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -26,14 +25,6 @@
 """Ranking-related handlers for AWS for a specific contest.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-import six
 
 import csv
 import io
@@ -96,12 +87,7 @@ class RankingHandler(BaseHandler):
             self.set_header("Content-Disposition",
                             "attachment; filename=\"ranking.csv\"")
 
-            if six.PY3:
-                output = io.StringIO()  # untested
-            else:
-                # In python2 we must use this because its csv module does not
-                # support unicode input
-                output = io.BytesIO()
+            output = io.StringIO()  # untested
             writer = csv.writer(output)
 
             include_partial = True
@@ -142,10 +128,7 @@ class RankingHandler(BaseHandler):
                 if include_partial:
                     row.append("*" if partial else "")
 
-                if six.PY3:
-                    writer.writerow(row)  # untested
-                else:
-                    writer.writerow([s.encode("utf-8") for s in row])
+                writer.writerow(row)  # untested
 
             self.finish(output.getvalue())
         else:

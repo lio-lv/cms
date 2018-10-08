@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -24,14 +23,6 @@ Create a Jinja2 environment and instrument it with utilities (globals,
 filters, tests, etc. that are useful for generic global usage.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, itervalues, iteritems
 
 from jinja2 import Environment, StrictUndefined, contextfilter, \
     contextfunction, environmentfunction
@@ -122,10 +113,10 @@ def dictselect(ctx, d, test=None, *args, **kwargs):
     by = kwargs.pop("by", "key")
     if len(kwargs) > 0:
         raise ValueError("Invalid keyword argument: %s"
-                         % next(iterkeys(kwargs)))
+                         % next(iter(kwargs.keys())))
     if by not in {"key", "value"}:
         raise ValueError("Invalid value of \"by\" keyword argument: %s" % by)
-    return dict((k, v) for k, v in iteritems(d)
+    return dict((k, v) for k, v in d.items()
                 if ctx.call(test, {"key": k, "value": v}[by], *args))
 
 
@@ -147,9 +138,7 @@ def today(ctx, dt):
 
 
 def instrument_generic_toolbox(env):
-    env.globals["iterkeys"] = iterkeys
-    env.globals["itervalues"] = itervalues
-    env.globals["iteritems"] = iteritems
+    env.globals["iter"] = iter
     env.globals["next"] = next
 
     # Needed for some constants.

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2015 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -23,14 +22,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems, itervalues
 
 from collections import namedtuple
 
@@ -272,10 +263,10 @@ def _task_score_max_subtask(score_details_tokened):
             # Task's score type is not group, assume a single subtask.
             subtask_scores = {1: score}
 
-        for idx, score in iteritems(subtask_scores):
+        for idx, score in subtask_scores.items():
             max_scores[idx] = max(max_scores.get(idx, 0.0), score)
 
-    return sum(itervalues(max_scores))
+    return sum(max_scores.values())
 
 
 def _task_score_max(score_details_tokened):

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -21,14 +20,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, iteritems
 
 import argparse
 import ast
@@ -286,7 +277,7 @@ def harvest_contest_data(contest_id):
                 continue
             users[user.username] = {'password': password}
         for task in contest.tasks:
-            tasks.append((task.id, task.name, list(iterkeys(task.statements))))
+            tasks.append((task.id, task.name, list(task.statements.keys())))
     return users, tasks
 
 
@@ -358,7 +349,7 @@ def main():
         return
 
     if args.actor_num is not None:
-        user_items = list(iteritems(users))
+        user_items = list(users.items())
         if args.sort_actors:
             user_items.sort()
         else:
@@ -384,7 +375,7 @@ def main():
                                                               username)),
                           base_url=base_url,
                           submissions_path=args.submissions_path)
-              for username, data in iteritems(users)]
+              for username, data in users.items()]
     for actor in actors:
         actor.start()
 

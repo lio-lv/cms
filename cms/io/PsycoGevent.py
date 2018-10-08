@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # This file was taken from
 # https://bitbucket.org/zzzeek/green_sqla/src/2732bb7ea9d06b9d4a61e8c \
@@ -32,13 +31,6 @@ Use `make_psycopg_green()` to enable gevent support in Psycopg.
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
 
 from contextlib import contextmanager
 

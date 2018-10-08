@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -18,17 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import itervalues, iteritems
-from six.moves import zip_longest
-
 import heapq
 import logging
+from itertools import zip_longest
+
 
 from cmscommon.constants import \
     SCORE_MODE_MAX, SCORE_MODE_MAX_SUBTASK, SCORE_MODE_MAX_TOKENED_LAST
@@ -125,10 +117,10 @@ class Score(object):
         if self._score_mode == SCORE_MODE_MAX:
             score = max([0.0] +
                         [submission.score
-                         for submission in itervalues(self._submissions)])
+                         for submission in self._submissions.values()])
         elif self._score_mode == SCORE_MODE_MAX_SUBTASK:
             scores_by_submission = (s.extra or []
-                                    for s in itervalues(self._submissions))
+                                    for s in self._submissions.values())
             scores_by_subtask = zip_longest(*scores_by_submission,
                                             fillvalue=0.0)
             score = float(sum(max(s) for s in scores_by_subtask))
@@ -151,7 +143,7 @@ class Score(object):
         del self._history[:]
 
         # Reset the submissions at their default value.
-        for sub in itervalues(self._submissions):
+        for sub in self._submissions.values():
             sub.score = 0.0
             sub.token = False
             sub.extra = list()
@@ -270,9 +262,9 @@ class ScoringStore(object):
         finishes loading the data from disk.
 
         """
-        for key, value in iteritems(self.submission_store._store):
+        for key, value in self.submission_store._store.items():
             self.create_submission(key, value)
-        for key, value in sorted(iteritems(self.subchange_store._store)):
+        for key, value in sorted(self.subchange_store._store.items()):
             self.create_subchange(key, value)
 
     def add_score_callback(self, callback):
@@ -397,8 +389,8 @@ class ScoringStore(object):
         # Use a priority queue, containing only one entry
         # per-user/per-task.
         queue = list()
-        for user, dic in iteritems(self._scores):
-            for task, scoring in iteritems(dic):
+        for user, dic in self._scores.items():
+            for task, scoring in dic.items():
                 if scoring._history:
                     heapq.heappush(queue, (scoring._history[0],
                                            user, task, scoring, 0))

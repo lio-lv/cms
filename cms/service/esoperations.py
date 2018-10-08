@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -26,14 +25,6 @@
 compute sets of operations to do.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys
 
 import logging
 
@@ -196,7 +187,7 @@ def submission_get_operations(submission_result, submission, dataset):
         evaluated_testcase_ids = set(
             evaluation.testcase_id
             for evaluation in submission_result.evaluations)
-        for testcase_codename in iterkeys(dataset.testcases):
+        for testcase_codename in dataset.testcases.keys():
             testcase_id = dataset.testcases[testcase_codename].id
             if testcase_id not in evaluated_testcase_ids:
                 yield ESOperation(ESOperation.EVALUATION,

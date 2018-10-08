@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -26,13 +25,6 @@ and content. The list is intended to represent a multiset, hence order
 is irrelevant and duplicates are allowed.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
 
 from .check import get_submission_count, check_max_number, \
     get_latest_submission, check_min_interval

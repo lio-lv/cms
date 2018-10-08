@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -17,21 +16,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems
-
 import io
 import os
 import stat
 import unittest
 from datetime import timedelta
-
-from mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 # Needs to be first to allow for monkey patching the DB connection string.
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
@@ -74,7 +64,7 @@ class TestFetchFileDigestsFromPreviousSubmission(DatabaseMixin,
     def insert_submission(self, language, file_digests):
         s = self.add_submission(
             language=language, participation=self.participation, task=self.task)
-        for codename, digest in iteritems(file_digests):
+        for codename, digest in file_digests.items():
             self.add_file(filename=codename, digest=digest, submission=s)
 
     def insert_user_test(
@@ -82,10 +72,10 @@ class TestFetchFileDigestsFromPreviousSubmission(DatabaseMixin,
         t = self.add_user_test(
             language=language, input=input_digest,
             participation=self.participation, task=self.task)
-        for codename, digest in iteritems(file_digests):
+        for codename, digest in file_digests.items():
             self.add_user_test_file(filename=codename, digest=digest,
                                     user_test=t)
-        for filename, digest in iteritems(manager_digests):
+        for filename, digest in manager_digests.items():
             self.add_user_test_manager(filename=filename, digest=digest,
                                        user_test=t)
 

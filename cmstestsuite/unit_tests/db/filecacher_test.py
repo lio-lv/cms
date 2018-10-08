@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -23,13 +22,6 @@
 """Testing suite for FileCacher
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
 
 import errno
 import io
@@ -183,9 +175,7 @@ class TestFileCacherBase(object):
 
         """
         self.size = 100
-        # We need to wrap the generator in a list because of a
-        # shortcoming of future's bytes implementation.
-        self.content = bytes([random.getrandbits(8) for _ in range(self.size)])
+        self.content = bytes(random.getrandbits(8) for _ in range(self.size))
 
         data = self.file_cacher.put_file_from_fobj(BytesIO(self.content),
                                                    "Test #000")
@@ -268,9 +258,7 @@ class TestFileCacherBase(object):
         Then retrieve it as a string.
 
         """
-        # We need to wrap the generator in a list because of a
-        # shortcoming of future's bytes implementation.
-        self.content = bytes([random.getrandbits(8) for _ in range(100)])
+        self.content = bytes(random.getrandbits(8) for _ in range(100))
 
         try:
             data = self.file_cacher.put_file_content(self.content,

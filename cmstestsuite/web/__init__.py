@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Bernard Blackham <bernard@largestprime.net>
@@ -21,14 +20,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import itervalues, iteritems
 
 import datetime
 import io
@@ -84,7 +75,7 @@ class Browser(object):
                 file_objs = dict((k, io.open(v, "rb")) for k, v in file_names)
                 response = self.session.post(url, data, files=file_objs)
             finally:
-                for fobj in itervalues(file_objs):
+                for fobj in file_objs.values():
                     fobj.close()
         return response
 
@@ -212,14 +203,14 @@ class GenericRequest(object):
         res = "URL: %s\n" % self.url
         if self.response is not None:
             res += "\nREQUEST HEADERS\n"
-            for key, value in iteritems(self.response.request.headers):
+            for key, value in self.response.request.headers.items():
                 res += "%s: %s\n" % (key, value)
             res += "\nREQUEST DATA\n%s\n" % self.response.request.body
         else:
             res += "\nNO REQUEST INFORMATION AVAILABLE\n"
         if self.res_data is not None:
             res += "\nRESPONSE HEADERS\n"
-            for key, value in iteritems(self.response.headers):
+            for key, value in self.response.headers.items():
                 res += "%s: %s\n" % (key, value)
             res += "\nRESPONSE DATA\n%s\n" % (self.res_data)
         else:

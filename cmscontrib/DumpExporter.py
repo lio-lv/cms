@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -25,14 +24,6 @@
 exporting and importing again should be idempotent.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import PY3, itervalues, iteritems
 
 # We enable monkey patching to make many libraries gevent-friendly
 # (for instance, urllib3, used by requests)
@@ -248,7 +239,7 @@ class DumpExporter(object):
                         self.get_id(obj)
 
                 # Specify the "root" of the data graph
-                data["_objects"] = list(itervalues(self.ids))
+                data["_objects"] = list(self.ids.values())
 
                 while len(self.queue) > 0:
                     obj = self.queue.pop(0)
@@ -258,12 +249,8 @@ class DumpExporter(object):
                 data["_version"] = model_version
 
                 destination = os.path.join(export_dir, "contest.json")
-                if PY3:
-                    with io.open(destination, "wt", encoding="utf-8") as fout:
-                        json.dump(data, fout, indent=4, sort_keys=True)
-                else:
-                    with io.open(destination, "wb") as fout:
-                        json.dump(data, fout, indent=4, sort_keys=True)
+                with io.open(destination, "wt", encoding="utf-8") as fout:
+                    json.dump(data, fout, indent=4, sort_keys=True)
 
         # If the admin requested export to file, we do that.
         if archive_info["write_mode"] != "":
@@ -350,7 +337,7 @@ class DumpExporter(object):
                 data[prp.key] = list(self.get_id(i) for i in val)
             elif isinstance(val, dict):
                 data[prp.key] = \
-                    dict((k, self.get_id(v)) for k, v in iteritems(val))
+                    dict((k, self.get_id(v)) for k, v in val.items())
             else:
                 raise RuntimeError("Unknown SQLAlchemy relationship type: %s"
                                    % type(val))

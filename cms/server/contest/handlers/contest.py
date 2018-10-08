@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -29,14 +28,6 @@
 """Contest handler classes for CWS.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, iteritems
 
 import ipaddress
 import logging
@@ -79,10 +70,10 @@ class ContestHandler(BaseHandler):
 
         if self.contest.allowed_localizations:
             lang_codes = filter_language_codes(
-                list(iterkeys(self.available_translations)),
+                list(self.available_translations.keys()),
                 self.contest.allowed_localizations)
             self.available_translations = dict(
-                (k, v) for k, v in iteritems(self.available_translations)
+                (k, v) for k, v in self.available_translations.items()
                 if k in lang_codes)
 
         super(ContestHandler, self).prepare()

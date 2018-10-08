@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the DumpImporter script"""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import PY3, assertCountEqual, iteritems
 
 import json
 import io
@@ -155,12 +146,8 @@ class TestDumpImporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
 
     def write_dump(self, dump):
         destination = self.get_path("contest.json")
-        if PY3:
-            with io.open(destination, "wt", encoding="utf-8") as f:
-                json.dump(dump, f, indent=4, sort_keys=True)
-        else:
-            with io.open(destination, "wb") as f:
-                json.dump(dump, f, indent=4, sort_keys=True)
+        with io.open(destination, "wt", encoding="utf-8") as f:
+            json.dump(dump, f, indent=4, sort_keys=True)
 
     def write_files(self, data):
         """Write files and descriptions on the filesystem.
@@ -171,7 +158,7 @@ class TestDumpImporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
         """
         f_path = self.makedirs("files")
         d_path = self.makedirs("descriptions")
-        for digest, (desc, content) in iteritems(data):
+        for digest, (desc, content) in data.items():
             with io.open(
                     os.path.join(d_path, digest), "wt", encoding="utf-8") as f:
                 f.write(desc)
@@ -192,11 +179,11 @@ class TestDumpImporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
         c = db_contests[0]
         self.assertEqual(c.name, name)
         self.assertEqual(c.description, description)
-        assertCountEqual(self, [(t.name, t.title) for t in c.tasks],
-                         task_names_and_titles)
-        assertCountEqual(self, [(u.user.username, u.user.last_name)
+        self.assertCountEqual([(t.name, t.title) for t in c.tasks],
+                              task_names_and_titles)
+        self.assertCountEqual([(u.user.username, u.user.last_name)
                                 for u in c.participations],
-                         usernames_and_last_names)
+                              usernames_and_last_names)
 
     def assertContestNotInDb(self, name):
         """Assert that the contest with the given name is not in the DB."""

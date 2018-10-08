@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -30,14 +29,6 @@ the workers. Also, it collects the results from the workers and build
 the current ranking.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, itervalues, iteritems
 
 import logging
 
@@ -477,7 +468,7 @@ class EvaluationService(TriggeredService):
             by_object_and_type[t].append((operation, result))
 
         with SessionGen() as session:
-            for key, operation_results in iteritems(by_object_and_type):
+            for key, operation_results in by_object_and_type.items():
                 type_, object_id, dataset_id = key
 
                 dataset = Dataset.get_from_id(dataset_id, session)
@@ -509,7 +500,7 @@ class EvaluationService(TriggeredService):
             session.commit()
 
             num_testcases_per_dataset = dict()
-            for type_, object_id, dataset_id in iterkeys(by_object_and_type):
+            for type_, object_id, dataset_id in by_object_and_type.keys():
                 if type_ == ESOperation.EVALUATION:
                     if dataset_id not in num_testcases_per_dataset:
                         num_testcases_per_dataset[dataset_id] = session\
@@ -529,7 +520,7 @@ class EvaluationService(TriggeredService):
 
             logger.info("Ending operations for %s objects...",
                         len(by_object_and_type))
-            for type_, object_id, dataset_id in iterkeys(by_object_and_type):
+            for type_, object_id, dataset_id in by_object_and_type.keys():
                 if type_ == ESOperation.COMPILATION:
                     submission_result = SubmissionResult.get_from_id(
                         (object_id, dataset_id), session)
@@ -605,7 +596,7 @@ class EvaluationService(TriggeredService):
                    result.job.plus.get("tombstone") is True:
                     executable_digests = [
                         e.digest for e in
-                        itervalues(object_result.executables)]
+                        object_result.executables.values()]
                     if Digest.TOMBSTONE in executable_digests:
                         logger.info("Submission %d's compilation on dataset "
                                     "%d has been invalidated since the "
@@ -1026,5 +1017,5 @@ class EvaluationService(TriggeredService):
                 entries_by_key[key] = entry
                 entries_by_key[key]["item"]["multiplicity"] = 1
         return sorted(
-            itervalues(entries_by_key),
+            entries_by_key.values(),
             key=lambda x: (x["priority"], x["timestamp"]))

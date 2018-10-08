@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2015-2016 William Di Luigi <williamdiluigi@gmail.com>
@@ -22,14 +21,6 @@
 """Utility to export submissions to a folder.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems
 
 import argparse
 import io
@@ -93,7 +84,7 @@ def filter_top_scoring(results, unique):
                 usertask[key].append(value)
 
     results = []
-    for key, values in iteritems(usertask):
+    for key, values in usertask.items():
         for value in values:
             results.append(value[2])  # the "old" row
 

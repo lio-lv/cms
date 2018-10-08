@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the step utils."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import assertRegex
 
 import unittest
 
@@ -179,8 +170,8 @@ class TestGenericStep(unittest.TestCase):
                              collect_output=True)
 
         # UTF-8 invalid parts are replaced with funny question marks (\uFFFD).
-        assertRegex(self, stats["stdout"], "^o.*1$")
-        assertRegex(self, stats["stderr"], "^e.*2$")
+        self.assertRegex(stats["stdout"], "^o.*1$")
+        self.assertRegex(stats["stderr"], "^e.*2$")
 
 
 if __name__ == "__main__":

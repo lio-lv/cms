@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Programming contest management system
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
@@ -19,14 +18,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems
 
 import imp
 import io
@@ -125,7 +116,7 @@ class PolygonTaskLoader(TaskLoader):
         if get_statement:
             args["statements"] = {}
             args["primary_statements"] = []
-            for language, lang in iteritems(LANGUAGE_MAP):
+            for language, lang in LANGUAGE_MAP.items():
                 path = os.path.join(self.path, 'statements',
                                     '.pdf', language, 'problem.pdf')
                 if os.path.exists(path):

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2017 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -16,14 +15,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, itervalues, iteritems
 
 import argparse
 import functools
@@ -46,7 +37,6 @@ from werkzeug.exceptions import HTTPException, BadRequest, Unauthorized, \
     Forbidden, NotFound, NotAcceptable, UnsupportedMediaType
 from werkzeug.wsgi import responder, wrap_file, SharedDataMiddleware, \
     DispatcherMiddleware
-from werkzeug.utils import redirect
 
 # Needed for initialization. Do not remove.
 import cmsranking.Logger
@@ -324,9 +314,12 @@ class SubListHandler(object):
             raise NotAcceptable()
 
         result = list()
-        for task_id in iterkeys(self.task_store._store):
-            result.extend(itervalues(
-                self.scoring_store.get_submissions(args["user_id"], task_id)))
+        for task_id in self.task_store._store.keys():
+            result.extend(
+                self.scoring_store.get_submissions(
+                    args["user_id"], task_id
+                ).values()
+            )
         result.sort(key=lambda x: (x.task, x.time))
         result = list(a.__dict__ for a in result)
 
@@ -379,8 +372,8 @@ class ScoreHandler(object):
             raise NotAcceptable()
 
         result = dict()
-        for u_id, tasks in iteritems(self.scoring_store._scores):
-            for t_id, score in iteritems(tasks):
+        for u_id, tasks in self.scoring_store._scores.items():
+            for t_id, score in tasks.items():
                 if score.get_score() > 0.0:
                     result.setdefault(u_id, dict())[t_id] = score.get_score()
 
@@ -401,7 +394,7 @@ class ImageHandler(object):
         'bmp': 'image/bmp'
     }
 
-    MIME_TO_EXT = dict((v, k) for k, v in iteritems(EXT_TO_MIME))
+    MIME_TO_EXT = dict((v, k) for k, v in EXT_TO_MIME.items())
 
     def __init__(self, location, fallback):
         self.location = location
@@ -430,7 +423,7 @@ class ImageHandler(object):
         response = Response()
 
         available = list()
-        for extension, mimetype in iteritems(self.EXT_TO_MIME):
+        for extension, mimetype in self.EXT_TO_MIME.items():
             if os.path.isfile(location + '.' + extension):
                 available.append(mimetype)
         mimetype = request.accept_mimetypes.best_match(available)
@@ -454,10 +447,36 @@ class ImageHandler(object):
         return response
 
 
+class RootHandler(object):
+
+    def __init__(self, location):
+        self.path = os.path.join(location, "Ranking.html")
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
+    @responder
+    def wsgi_app(self, environ, start_response):
+        request = Request(environ)
+        request.encoding_errors = "strict"
+
+        response = Response()
+        response.status_code = 200
+        response.mimetype = "text/html"
+        response.last_modified = \
+            datetime.utcfromtimestamp(os.path.getmtime(self.path))\
+                    .replace(microsecond=0)
+        # TODO check for If-Modified-Since and If-None-Match
+        response.response = wrap_file(environ, io.open(self.path, 'rb'))
+        response.direct_passthrough = True
+
+        return response
+
+
 class RoutingHandler(object):
 
-    def __init__(
-            self, event_handler, logo_handler, score_handler, history_handler):
+    def __init__(self, root_handler, event_handler, logo_handler,
+                 score_handler, history_handler):
         self.router = Map([
             Rule("/", methods=["GET"], endpoint="root"),
             Rule("/history", methods=["GET"], endpoint="history"),
@@ -470,7 +489,7 @@ class RoutingHandler(object):
         self.logo_handler = logo_handler
         self.score_handler = score_handler
         self.history_handler = history_handler
-        self.root_handler = redirect("Ranking.html")
+        self.root_handler = root_handler
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -552,6 +571,7 @@ def main():
     stores["scoring"].init_store()
 
     toplevel_handler = RoutingHandler(
+        RootHandler(config.web_dir),
         DataWatcher(stores, config.buffer_size),
         ImageHandler(
             os.path.join(config.lib_dir, '%(name)s'),

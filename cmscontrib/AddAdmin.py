@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2015-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -20,13 +19,6 @@
 """This script creates a new admin in the database.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
 
 # We enable monkey patching to make many libraries gevent-friendly
 # (for instance, urllib3, used by requests)

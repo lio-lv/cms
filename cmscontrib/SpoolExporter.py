@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2012 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -25,14 +24,6 @@
 Italian IOI repository for storing the results of a contest.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys, iteritems
 
 # We enable monkey patching to make many libraries gevent-friendly
 # (for instance, urllib3, used by requests)
@@ -139,7 +130,7 @@ class SpoolExporter(object):
             submission_dir = os.path.join(
                 self.upload_dir, username, "%s.%d.%s" % (task, timestamp, ext))
             os.mkdir(submission_dir)
-            for filename, file_ in iteritems(submission.files):
+            for filename, file_ in submission.files.items():
                 self.file_cacher.get_file_to_path(
                     file_.digest,
                     os.path.join(submission_dir, filename.replace(".%l", ext)))
@@ -211,7 +202,7 @@ class SpoolExporter(object):
         if is_partial:
             logger.warning("Some of the scores are not definitive.")
 
-        sorted_usernames = sorted(iterkeys(scores),
+        sorted_usernames = sorted(scores.keys(),
                                   key=lambda username: (scores[username],
                                                         username),
                                   reverse=True)

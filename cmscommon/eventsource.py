@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -17,19 +16,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-
 import re
 import time
 from collections import deque
 from weakref import WeakSet
 
-from future.utils import text_to_native_str
 from gevent import Timeout
 from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIHandler
@@ -313,11 +304,8 @@ class EventSource(object):
         # it explicitly to avoid unwanted caching by unaware proxies and
         # middlewares.
         write = start_response(
-            text_to_native_str("200 OK"),
-            [(text_to_native_str("Content-Type"),
-              text_to_native_str("text/event-stream; charset=utf-8")),
-             (text_to_native_str("Cache-Control"),
-              text_to_native_str("no-cache"))])
+            "200 OK", [("Content-Type", "text/event-stream; charset=utf-8"),
+                       ("Cache-Control", "no-cache")])
 
         # This is a part of the fourth hack (see above).
         if hasattr(start_response, "__self__") and \

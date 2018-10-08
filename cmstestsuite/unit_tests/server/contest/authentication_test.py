@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Luca Wehrstedt <luca.wehrstedt@gmail.com>
@@ -21,17 +20,10 @@
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-
 import ipaddress
 import unittest
 from datetime import timedelta
-from mock import patch
+from unittest.mock import patch
 
 # Needs to be first to allow for monkey patching the DB connection string.
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin

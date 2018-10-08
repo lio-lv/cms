@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Bernard Blackham <bernard@largestprime.net>
@@ -21,14 +20,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import itervalues
-
 import atexit
 import errno
 import io
@@ -42,7 +33,7 @@ import socket
 import subprocess
 import threading
 import time
-from future.moves.urllib.parse import urlsplit
+from urllib.parse import urlsplit
 
 from cmscommon.datetime import monotonic_time
 from cmstestsuite import CONFIG, TestException
@@ -316,7 +307,7 @@ class ProgramStarter(object):
         self._programs[(service_name, shard, contest)] = p
 
     def count_unhealthy(self):
-        return len([p for p in itervalues(self._programs) if not p.healthy])
+        return len([p for p in self._programs.values() if not p.healthy])
 
     def wait(self):
         for attempts in range(_MAX_ATTEMPTS):
@@ -328,12 +319,12 @@ class ProgramStarter(object):
             time.sleep(0.2 * (1.2 ** attempts))
         raise TestException(
             "Failed to bring up services: %s" % ", ".join(
-                p.coord for p in itervalues(self._programs) if not p.healthy))
+                p.coord for p in self._programs.values() if not p.healthy))
 
     def stop_all(self):
-        for p in itervalues(self._programs):
+        for p in self._programs.values():
             p.log_cpu_times()
-        for p in itervalues(self._programs):
+        for p in self._programs.values():
             p.stop()
-        for p in itervalues(self._programs):
+        for p in self._programs.values():
             p.wait_or_kill()

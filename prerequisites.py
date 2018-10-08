@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -27,22 +26,6 @@
 configuration, and so on).
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-# Do not use imports from the future module here as this script is
-# called as root and thus may get a different environment than the one
-# the user will be using and in which the requirements were installed
-# (e.g. the site installation rather than a venv).
-
-# Alias raw_input as input on py2 only.
-try:
-    input = raw_input
-    del raw_input
-except NameError:
-    pass
 
 import argparse
 import grp

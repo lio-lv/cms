@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -43,13 +42,6 @@
 # You can find the original files at:
 # http://hg.python.org/cpython/file/69ee9b554eca/Lib/logging/__init__.py
 # http://hg.python.org/cpython/file/69ee9b554eca/Lib/logging/handlers.py
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
 
 import logging
 import sys

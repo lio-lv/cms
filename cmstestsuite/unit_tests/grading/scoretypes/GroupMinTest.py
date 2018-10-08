@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the GroupMin score type."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iterkeys
 
 import unittest
 
@@ -105,13 +96,13 @@ class TestGroupMin(ScoreTypeTestMixin, unittest.TestCase):
                          (s1 + s2 + s3, s1, header))
 
         # All groups are public
-        for testcase in iterkeys(public_testcases):
+        for testcase in public_testcases.keys():
             public_testcases[testcase] = True
         self.assertEqual(GroupMin(parameters, public_testcases).max_scores(),
                          (s1 + s2 + s3, s1 + s2 + s3, header))
 
         # No groups are public
-        for testcase in iterkeys(public_testcases):
+        for testcase in public_testcases.keys():
             public_testcases[testcase] = False
         self.assertEqual(GroupMin(parameters, public_testcases).max_scores(),
                          (s1 + s2 + s3, 0, header))
@@ -128,13 +119,13 @@ class TestGroupMin(ScoreTypeTestMixin, unittest.TestCase):
                          (s1 + s2 + s3, s1, header))
 
         # All groups are public
-        for testcase in iterkeys(public_testcases):
+        for testcase in public_testcases.keys():
             public_testcases[testcase] = True
         self.assertEqual(GroupMin(parameters, public_testcases).max_scores(),
                          (s1 + s2 + s3, s1 + s2 + s3, header))
 
         # No groups are public
-        for testcase in iterkeys(public_testcases):
+        for testcase in public_testcases.keys():
             public_testcases[testcase] = False
         self.assertEqual(GroupMin(parameters, public_testcases).max_scores(),
                          (s1 + s2 + s3, 0.0, header))

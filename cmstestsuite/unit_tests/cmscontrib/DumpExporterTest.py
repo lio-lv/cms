@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the DumpExporter script"""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import assertCountEqual, iteritems, itervalues
 
 import json
 import io
@@ -128,9 +119,9 @@ class TestDumpExporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
         raise (AssertionError): if the object is not in the dump.
 
         """
-        for key, obj in iteritems(self.dump):
+        for key, obj in self.dump.items():
             if isinstance(obj, dict) and obj["_class"] == cls.__name__ and \
-                    all(obj[k] == v for k, v in iteritems(kwargs)):
+                    all(obj[k] == v for k, v in kwargs.items()):
                 return key
         raise AssertionError("Cannot find object of class %s with fields %s" %
                              (cls.__name__, kwargs))
@@ -144,9 +135,9 @@ class TestDumpExporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
         raise (AssertionError): if the object is in the dump.
 
         """
-        for obj in itervalues(self.dump):
+        for obj in self.dump.values():
             if isinstance(obj, dict) and obj["_class"] == cls.__name__ and \
-                    all(obj[k] == v for k, v in iteritems(kwargs)):
+                    all(obj[k] == v for k, v in kwargs.items()):
                 raise AssertionError("Object of class %s with fields %s "
                                      "should not appear in the dump" %
                                      (cls.__name__, kwargs))
@@ -200,9 +191,9 @@ class TestDumpExporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
         self.assertFileInDump(self.file_digest, self.file_content)
 
         # Root objects are the contests, the users, and unattached tasks.
-        assertCountEqual(self, self.dump["_objects"],
-                         [contest_key, other_contest_key, user_key,
-                          unattached_task_key, unattached_user_key])
+        self.assertCountEqual(self.dump["_objects"],
+                              [contest_key, other_contest_key, user_key,
+                               unattached_task_key, unattached_user_key])
         self.assertEqual(self.dump["_version"], version)
 
     def test_export_single_contest(self):

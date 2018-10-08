@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -27,14 +26,6 @@
 """Dataset-related handlers for AWS.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import itervalues
 
 import io
 import logging
@@ -621,7 +612,7 @@ class DownloadTestcasesHandler(BaseHandler):
         # to avoid having the whole ZIP file in memory at once.
         temp_file = io.BytesIO()
         with zipfile.ZipFile(temp_file, "w") as zip_file:
-            for testcase in itervalues(dataset.testcases):
+            for testcase in dataset.testcases.values():
                 # Get input, output file path
                 with self.service.file_cacher.get_file(testcase.input) as f:
                     input_path = f.name

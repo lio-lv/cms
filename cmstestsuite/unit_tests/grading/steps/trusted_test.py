@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -19,17 +18,8 @@
 
 """Tests for the trusted step."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import PY2
-
 import unittest
-
-from mock import ANY, MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 from cms.grading.Sandbox import Sandbox
 from cms.grading.steps import extract_outcome_and_text, trusted_step, \
@@ -101,7 +91,6 @@ class TestExtractOutcomeAndText(unittest.TestCase):
         with self.assertRaises(ValueError):
             extract_outcome_and_text(self.sandbox)
 
-    @unittest.skipIf(PY2, "Python 2 does not have FileNotFoundError.")
     def test_failure_missing_file(self):
         self.sandbox.fake_file("o", b"0.45\n")
         with self.assertRaises(FileNotFoundError):

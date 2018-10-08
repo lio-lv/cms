@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -18,14 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for parameter types."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import PY2
 
 import unittest
 
@@ -64,7 +55,6 @@ class TestParameterTypeString(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.p.validate(["asd"])
 
-    @unittest.skipIf(PY2, "In Python2 bytes is a string type")
     def test_validate_failure_bytes(self):
         with self.assertRaises(ValueError):
             self.p.validate(b"asd")

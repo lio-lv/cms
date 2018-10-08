@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2015 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
@@ -19,14 +18,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems, with_metaclass
 
 import io
 import logging
@@ -182,7 +173,7 @@ class Truncator(io.RawIOBase):
         raise io.UnsupportedOperation('write')
 
 
-class SandboxBase(with_metaclass(ABCMeta, object)):
+class SandboxBase(object, metaclass=ABCMeta):
     """A base class for all sandboxes, meant to contain common
     resources.
 
@@ -1091,7 +1082,7 @@ class IsolateSandbox(SandboxBase):
             res += ["--full-env"]
         for var in self.inherit_env:
             res += ["--env=%s" % var]
-        for var, value in iteritems(self.set_env):
+        for var, value in self.set_env.items():
             res += ["--env=%s=%s" % (var, value)]
         if self.fsize is not None:
             res += ["--fsize=%d" % self.fsize]

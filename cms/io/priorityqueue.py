@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2014-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
@@ -38,14 +37,6 @@ The queue stores entries in the QueueEntry format, a class that stores
 together the three data point: item, priority, and timestamp.
 
 """
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.builtins.disabled import *  # noqa
-from future.builtins import *  # noqa
-from six import iteritems
 
 from gevent.event import Event
 
@@ -153,7 +144,7 @@ class PriorityQueue(object):
             return False
         if self._event.isSet() == self.empty():
             return False
-        for item, idx in iteritems(self._reverse):
+        for item, idx in self._reverse.items():
             if self._queue[idx].item != item:
                 return False
         return True
