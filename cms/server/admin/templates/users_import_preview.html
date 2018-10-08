@@ -45,7 +45,7 @@
               <td>{{ u.first_name }}</td>
               <td>{{ u.last_name }}</td>
               <td>{{ u.email if u.email else '' }}</td>
-              <td>{{ u'\u2713' if u.password else  u'\u2717'  }}</td>
+              <td>{{ '\u2713' if u.password else '\u2717' }}</td>
             </tr>
           {% endif %}
         {% endfor %}

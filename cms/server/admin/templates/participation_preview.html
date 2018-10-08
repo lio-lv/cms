@@ -35,7 +35,7 @@
               <td><input name='team' value="{{ u['team'] if u['team'] else '' }}"></td>
               {% if load_passwords %}
                 <td>
-                  <input type="hidden" name="password" value="{{ u['password'] }}">{{ u'\u2713' if u['password'] else u'\u2717' }}
+                  <input type="hidden" name="password" value="{{ u['password'] }}">{{ '\u2713' if u['password'] else '\u2717' }}
                 </td>
               {% endif %}
             {% endif %}
