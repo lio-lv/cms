@@ -34,7 +34,7 @@ from sqlalchemy.orm import joinedload
 
 from cms.db import Contest, SubmissionResult
 from cms.grading.scoring import task_score, ScoredSubmission
-from cms.grading.scoretypes import get_score_type, ScoreTypeGroup
+from cms.grading.scoretypes import ScoreTypeGroup
 
 from .base import BaseHandler, require_permission
 
@@ -193,7 +193,7 @@ class DetailedResultsHandler(BaseHandler):
         max_score = 0
         for task in contest.tasks:
             dataset = task.active_dataset
-            scoretype = get_score_type(dataset=dataset)
+            scoretype = dataset.score_type_object
             max_score += scoretype.max_score
 
         for p in sorted(contest.participations,
@@ -214,7 +214,7 @@ class DetailedResultsHandler(BaseHandler):
                 if partial:
                     partial_results = True
                 score = round(score, task.score_precision)
-                st = get_score_type(dataset=task.active_dataset)
+                st = task.active_dataset.score_type_object
                 if not isinstance(st, ScoreTypeGroup):
                     raise Exception("Unsupported score type for task {0}"
                                     .format(task.name))
