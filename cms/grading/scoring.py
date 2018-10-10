@@ -167,7 +167,7 @@ def task_score(participation, task, public=False, only_tokened=False, *, submiss
             score, score_details = None, None
         else:
             score, score_details = sr.score, sr.score_details
-        score_details_tokened.append((score, score_details, s.tokened()))
+        score_details_tokened.append((score, score_details, s.tokened(), s))
 
     if task.score_mode == SCORE_MODE_MAX:
         return _task_score_max(score_details_tokened), partial
@@ -186,10 +186,10 @@ def _task_score_max_tokened_last(score_details_tokened, *, submission=None):
     the maximum score amongst all tokened submissions and the last submission
     (not yet computed scores count as 0.0).
 
-    score_details_tokened ([(float|None, object|None, bool)]): a tuple for each
+    score_details_tokened ([(float|None, object|None, bool, Submission)]): a tuple for each
         submission of the user in the task, containing score, score details
-        (each None if not scored yet) and if the submission was tokened.
-    submission (ScoredSubmission): Optional object to save the scored submission.
+        (each None if not scored yet), if the submission was tokened and the submission itself.
+    submission (ScoredSubmission): An optional object to store scored submission.
 
     return (float): the score.
 
@@ -197,14 +197,14 @@ def _task_score_max_tokened_last(score_details_tokened, *, submission=None):
 
     # The score of the last submission (if computed, otherwise 0.0). Note that
     # partial will be set to True in the next loop.
-    last_score, last_submission, _ = score_details_tokened[-1]
+    last_score, _, _, last_submission = score_details_tokened[-1]
     if last_score is None:
         last_score = 0.0
 
     # The maximum score amongst the tokened submissions (not yet computed
     # scores count as 0.0).
     max_tokened_score, max_tokened_submission = 0.0, None
-    for score, s, tokened in score_details_tokened:
+    for score, _, tokened, s in score_details_tokened:
         if score is not None:
             if tokened:
                 if score >= max_tokened_score:
@@ -233,9 +233,9 @@ def _task_score_max_subtask(score_details_tokened):
     this is not true, the score mode will work as if the task had a single
     subtask.
 
-    score_details_tokened ([(float|None, object|None, bool)]): a tuple for each
+    score_details_tokened ([(float|None, object|None, bool, Submission)]): a tuple for each
         submission of the user in the task, containing score, score details
-        (each None if not scored yet) and if the submission was tokened.
+        (each None if not scored yet), if the submission was tokened and the submission itself.
 
     return (float): the score.
 
@@ -243,7 +243,7 @@ def _task_score_max_subtask(score_details_tokened):
     # Maximum score for each subtask (not yet computed scores count as 0.0).
     max_scores = {}
 
-    for score, details, _ in score_details_tokened:
+    for score, details, _, _ in score_details_tokened:
         if score is None:
             continue
 
@@ -276,16 +276,16 @@ def _task_score_max(score_details_tokened):
     the maximum score amongst all submissions (not yet computed scores count
     as 0.0).
 
-    score_details_tokened ([(float|None, object|None, bool)]): a tuple for each
+    score_details_tokened ([(float|None, object|None, bool, Submission)]): a tuple for each
         submission of the user in the task, containing score, score details
-        (each None if not scored yet) and if the submission was tokened.
+        (each None if not scored yet), if the submission was tokened and the submission itself.
 
     return (float): the score.
 
     """
     max_score = 0.0
 
-    for score, _, _ in score_details_tokened:
+    for score, _, _, _ in score_details_tokened:
         if score is not None:
             max_score = max(max_score, score)
 
