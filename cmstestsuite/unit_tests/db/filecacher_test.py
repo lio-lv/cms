@@ -23,8 +23,6 @@
 
 """
 
-import errno
-import io
 import os
 import random
 import shutil
@@ -45,8 +43,6 @@ class RandomFile(object):
     """
     def __init__(self, dim):
         self.dim = dim
-        # FIXME We could use os.urandom() instead.
-        self.source = io.open('/dev/urandom', 'rb')
         self.digester = Digester()
 
     def read(self, byte_num):
@@ -62,16 +58,16 @@ class RandomFile(object):
             byte_num = self.dim
         if byte_num == 0:
             return b''
-        buf = self.source.read(byte_num)
+        buf = os.urandom(byte_num)
         self.dim -= len(buf)
         self.digester.update(buf)
         return buf
 
     def close(self):
-        """Close the source file.
+        """Do nothing.
 
         """
-        self.source.close()
+        pass
 
     @property
     def digest(self):
@@ -139,11 +135,8 @@ class TestFileCacherBase(object):
         cache_path = os.path.join(self.cache_base_path, digest)
         try:
             os.unlink(cache_path)
-        except OSError as e:
-            # Only ignore if the file didn't exist. Other failures we should
-            # know about!
-            if e.errno == errno.ENOENT:
-                pass
+        except FileNotFoundError:
+            pass
 
         # Pull it out of the file_cacher and compute the hash
         hash_file = HashingFile()
@@ -182,7 +175,7 @@ class TestFileCacherBase(object):
 
         if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.fail("File not stored in local cache.")
-        with io.open(os.path.join(self.cache_base_path, data), "rb") as f:
+        with open(os.path.join(self.cache_base_path, data), "rb") as f:
             if f.read() != self.content:
                 self.fail("Local cache's content differ "
                           "from original file.")
@@ -191,7 +184,7 @@ class TestFileCacherBase(object):
 
         # Retrieve the file.
         self.fake_content = b"Fake content.\n"
-        with io.open(self.cache_path, "wb") as cached_file:
+        with open(self.cache_path, "wb") as cached_file:
             cached_file.write(self.fake_content)
         try:
             data = self.file_cacher.get_file(self.digest)
@@ -228,7 +221,7 @@ class TestFileCacherBase(object):
             self.fail("Content differ.")
         if not os.path.exists(self.cache_path):
             self.fail("File not stored in local cache.")
-        with io.open(self.cache_path, "rb") as f:
+        with open(self.cache_path, "rb") as f:
             if f.read() != self.content:
                 self.fail("Local cache's content differ " +
                           "from original file.")
@@ -269,7 +262,7 @@ class TestFileCacherBase(object):
 
         if not os.path.exists(os.path.join(self.cache_base_path, data)):
             self.fail("File not stored in local cache.")
-        with io.open(os.path.join(self.cache_base_path, data), "rb") as f:
+        with open(os.path.join(self.cache_base_path, data), "rb") as f:
             if f.read() != self.content:
                 self.fail("Local cache's content differ "
                           "from original file.")
@@ -278,7 +271,7 @@ class TestFileCacherBase(object):
 
         # Retrieve the file as a string.
         self.fake_content = b"Fake content.\n"
-        with io.open(self.cache_path, "wb") as cached_file:
+        with open(self.cache_path, "wb") as cached_file:
             cached_file.write(self.fake_content)
         try:
             data = self.file_cacher.get_file_content(self.digest)

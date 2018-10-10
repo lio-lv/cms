@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import errno
 import json
 import logging
@@ -138,17 +137,17 @@ class Config(object):
         """
         for conf_path in conf_paths:
             try:
-                with io.open(conf_path, "rt") as conf_fobj:
+                with open(conf_path, "rt", encoding="utf-8") as conf_fobj:
                     logger.info("Using config file %s.", conf_path)
                     return self._load_one(conf_fobj)
-            except IOError as error:
-                # If it's because it doesn't exist we just skip to the
-                # next one. Otherwise it's probably unintended and the
-                # user should do something about it.
-                if error.errno != errno.ENOENT:
-                    logger.critical("Unable to access config file %s: %s.",
-                                    conf_path, os.strerror(error.errno))
-                    return False
+            except FileNotFoundError:
+                # If it doesn't exist we just skip to the next one.
+                pass
+            except OSError as error:
+                logger.critical("Unable to access config file %s: [%s] %s.",
+                                conf_path, errno.errorcode[error.errno],
+                                os.strerror(error.errno))
+                return False
         logger.warning("No config file found, using hardcoded defaults.")
         return True
 

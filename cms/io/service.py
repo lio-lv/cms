@@ -162,7 +162,7 @@ class Service(object):
             ipaddr, port = address
             ipaddr = gevent.socket.gethostbyname(ipaddr)
             address = Address(ipaddr, port)
-        except socket.error:
+        except OSError:
             logger.warning("Unexpected error.", exc_info=True)
             return
         remote_service = RemoteServiceServer(self, address)
@@ -254,9 +254,8 @@ class Service(object):
         backdoor_path = self.get_backdoor_path()
         try:
             os.remove(backdoor_path)
-        except OSError as error:
-            if error.errno != errno.ENOENT:
-                raise
+        except FileNotFoundError:
+            pass
         else:
             logger.warning("A backdoor socket has been found and deleted.")
         mkdir(os.path.dirname(backdoor_path))
@@ -283,9 +282,8 @@ class Service(object):
         backdoor_path = self.get_backdoor_path()
         try:
             os.remove(backdoor_path)
-        except OSError as error:
-            if error.errno != errno.ENOENT:
-                raise
+        except FileNotFoundError:
+            pass
 
     def run(self):
         """Starts the main loop of the service.
@@ -296,15 +294,14 @@ class Service(object):
         try:
             self.rpc_server.start()
 
-        # This must come before socket.error, because socket.gaierror
-        # extends socket.error
+        # This extends OSError and thus must come before it.
         except socket.gaierror:
             logger.critical("Service %s could not listen on "
                             "specified address, because it cannot "
                             "be resolved.", self.name)
             return False
 
-        except socket.error as error:
+        except OSError as error:
             if error.errno == errno.EADDRINUSE:
                 logger.critical("Listening port %s for service %s is "
                                 "already in use, quitting.",

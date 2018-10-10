@@ -21,8 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import atexit
-import errno
-import io
 import json
 import logging
 import os
@@ -216,10 +214,11 @@ class Program(object):
                 self._check_ranking_web_server()
             else:
                 self._check_service()
-        except socket.error as error:
+        except ConnectionRefusedError:
             self.healthy = False
-            if error.errno != errno.ECONNREFUSED:
-                raise TestException("Weird connection state.")
+        except OSError:
+            self.healthy = False
+            raise TestException("Weird connection state.")
         else:
             self.healthy = True
 
@@ -262,8 +261,8 @@ class Program(object):
             stdout = None
             stderr = None
         else:
-            stdout = io.open(os.devnull, "wb")
-            stderr = stdout
+            stdout = subprocess.DEVNULL
+            stderr = subprocess.STDOUT
         instance = subprocess.Popen(cmdline, stdout=stdout, stderr=stderr)
         if self.cpu_limit is not None:
             logger.info("Limiting %s to %d%% CPU time",

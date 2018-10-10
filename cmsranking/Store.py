@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import json
 import logging
 import os
@@ -81,17 +80,15 @@ class Store(object):
             for name in os.listdir(self._path):
                 # TODO check that the key is '[A-Za-z0-9_]+'
                 if name[-5:] == '.json' and name[:-5] != '':
-                    with io.open(os.path.join(self._path, name), 'rb') as rec:
+                    with open(os.path.join(self._path, name), 'rb') as rec:
                         item = self._entity()
                         item.set(json.load(rec))
                         item.key = name[:-5]
                         self._store[name[:-5]] = item
         except OSError:
             # the path isn't a directory or is inaccessible
-            logger.error("Path is not a directory or is not accessible",
-                         exc_info=True)
-        except IOError:
-            logger.error("I/O error occured", exc_info=True)
+            logger.error("Path is not a directory or is not accessible "
+                         "(or other I/O error occurred)", exc_info=True)
         except ValueError:
             logger.error("Invalid JSON", exc_info=False,
                          extra={'location': os.path.join(self._path, name)})
@@ -158,9 +155,9 @@ class Store(object):
             # reflect changes on the persistent storage
             try:
                 path = os.path.join(self._path, key + '.json')
-                with io.open(path, 'wt', encoding="utf-8") as rec:
+                with open(path, 'wt', encoding="utf-8") as rec:
                     json.dump(self._store[key].get(), rec)
-            except IOError:
+            except OSError:
                 logger.error("I/O error occured while creating entity",
                              exc_info=True)
 
@@ -197,9 +194,9 @@ class Store(object):
             # reflect changes on the persistent storage
             try:
                 path = os.path.join(self._path, key + '.json')
-                with io.open(path, 'wt', encoding="utf-8") as rec:
+                with open(path, 'wt', encoding="utf-8") as rec:
                     json.dump(self._store[key].get(), rec)
-            except IOError:
+            except OSError:
                 logger.error("I/O error occured while updating entity",
                              exc_info=True)
 
@@ -253,9 +250,9 @@ class Store(object):
                 # reflect changes on the persistent storage
                 try:
                     path = os.path.join(self._path, key + '.json')
-                    with io.open(path, 'wt', encoding="utf-8") as rec:
+                    with open(path, 'wt', encoding="utf-8") as rec:
                         json.dump(value.get(), rec)
-                except IOError:
+                except OSError:
                     logger.error(
                         "I/O error occured while merging entity lists",
                         exc_info=True)

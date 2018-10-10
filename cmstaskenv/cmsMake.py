@@ -21,7 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import io
 import os
 import sys
 import subprocess
@@ -122,13 +121,13 @@ def parse_task_yaml(base_dir):
     yaml_path = os.path.join(base_dir, "task.yaml")
 
     try:
-        with io.open(yaml_path, "rt", encoding="utf-8") as yaml_file:
+        with open(yaml_path, "rt", encoding="utf-8") as yaml_file:
             conf = yaml.load(yaml_file)
-    except IOError:
+    except OSError:
         yaml_path = os.path.join(parent_dir, "%s.yaml" %
                                  (detect_task_name(base_dir)))
 
-        with io.open(yaml_path, "rt", encoding="utf-8") as yaml_file:
+        with open(yaml_path, "rt", encoding="utf-8") as yaml_file:
             conf = yaml.load(yaml_file)
     return conf
 
@@ -324,47 +323,48 @@ def build_text_list(base_dir, task_type):
 
 def iter_GEN(name):
     st = 0
-    for line in io.open(name, "rt", encoding="utf-8"):
-        line = line.strip()
-        splitted = line.split('#', 1)
+    with open(name, "rt", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            splitted = line.split('#', 1)
 
-        if len(splitted) == 1:
-            # This line represents a testcase, otherwise
-            # it's just a blank
-            if splitted[0] != '':
-                yield (False, splitted[0], st)
+            if len(splitted) == 1:
+                # This line represents a testcase, otherwise
+                # it's just a blank
+                if splitted[0] != '':
+                    yield (False, splitted[0], st)
 
-        else:
-            testcase, comment = splitted
-            is_trivial = comment.startswith(" ")
-            testcase = testcase.strip()
-            comment = comment.strip()
-            testcase_detected = len(testcase) > 0
-            copy_testcase_detected = comment.startswith("COPY:")
-            subtask_detected = comment.startswith('ST:')
+            else:
+                testcase, comment = splitted
+                is_trivial = comment.startswith(" ")
+                testcase = testcase.strip()
+                comment = comment.strip()
+                testcase_detected = len(testcase) > 0
+                copy_testcase_detected = comment.startswith("COPY:")
+                subtask_detected = comment.startswith('ST:')
 
-            flags = [testcase_detected,
-                     copy_testcase_detected,
-                     subtask_detected]
+                flags = [testcase_detected,
+                         copy_testcase_detected,
+                         subtask_detected]
 
-            flags_count = len([x for x in flags if x])
+                flags_count = len([x for x in flags if x])
 
-            if flags_count > 1:
-                raise Exception("No testcase and command in"
-                                " the same line allowed")
+                if flags_count > 1:
+                    raise Exception("No testcase and command in"
+                                    " the same line allowed")
 
-            if flags_count == 0 and not is_trivial:
-                raise Exception("Unrecognized non-trivial line")
+                if flags_count == 0 and not is_trivial:
+                    raise Exception("Unrecognized non-trivial line")
 
-            if testcase_detected:
-                yield (False, testcase, st)
+                if testcase_detected:
+                    yield (False, testcase, st)
 
-            if copy_testcase_detected:
-                yield (True, comment[5:].strip(), st)
+                if copy_testcase_detected:
+                    yield (True, comment[5:].strip(), st)
 
-            # This line starts a new subtask
-            if subtask_detected:
-                st += 1
+                # This line starts a new subtask
+                if subtask_detected:
+                    st += 1
 
 
 def build_gen_list(base_dir, task_type, yaml_conf):
@@ -439,7 +439,7 @@ def build_gen_list(base_dir, task_type, yaml_conf):
                 shutil.copyfile(copy_input, new_input)
             else:
                 # Call the generator
-                with io.open(new_input, 'wb') as fout:
+                with open(new_input, 'wb') as fout:
                     call(base_dir,
                          [gen_exe] + line.split(),
                          stdout=fout)
@@ -480,22 +480,29 @@ def build_gen_list(base_dir, task_type, yaml_conf):
             "output.txt" if use_stdout else yaml_conf.get("outfile"))
 
         os.symlink(infile, copied_infile)
-        fin = io.open(copied_infile, "rb") if use_stdin else None
-        fout = io.open(copied_outfile, 'wb') if use_stdout else None
+        fin = None
+        fout = None
 
-        shutil.copy(sol_exe, temp_dir)
+        try:
+            if use_stdin:
+                fin = open(copied_infile, "rb")
+            if use_stdout:
+                fout = open(copied_outfile, 'wb')
 
-        # If the task of of type Communication, then there is
-        # nothing to put in the output files
-        if task_type != ['Communication', '']:
-            call(temp_dir, [os.path.join(temp_dir, SOL_FILENAME)],
-                 stdin=fin, stdout=fout)
-            move_cursor(directions.UP, erase=True, stream=sys.stderr)
+            shutil.copy(sol_exe, temp_dir)
 
-        if fin is not None:
-            fin.close()
-        if fout is not None:
-            fout.close()
+            # If the task of of type Communication, then there is
+            # nothing to put in the output files
+            if task_type != ['Communication', '']:
+                call(temp_dir, [os.path.join(temp_dir, SOL_FILENAME)],
+                     stdin=fin, stdout=fout)
+                move_cursor(directions.UP, erase=True, stream=sys.stderr)
+
+        finally:
+            if fin is not None:
+                fin.close()
+            if fout is not None:
+                fout.close()
 
         os.rename(copied_outfile, outfile)
         shutil.rmtree(temp_dir)

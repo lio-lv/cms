@@ -22,7 +22,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import errno
-import io
 import json
 import logging
 import os
@@ -233,15 +232,15 @@ class Config(object):
         """
         # Load config file.
         try:
-            with io.open(path, 'rt', encoding='utf-8') as f:
+            with open(path, 'rt', encoding='utf-8') as f:
                 data = json.load(f)
-        except IOError as error:
-            if error.errno == errno.ENOENT:
-                logger.debug("Couldn't find config file %s.", path)
-            else:
-                logger.warning("I/O error while opening file %s: [%s] %s",
-                               path, errno.errorcode[error.errno],
-                               os.strerror(error.errno))
+        except FileNotFoundError:
+            logger.debug("Couldn't find config file %s.", path)
+            return False
+        except OSError as error:
+            logger.warning("I/O error while opening file %s: [%s] %s",
+                           path, errno.errorcode[error.errno],
+                           os.strerror(error.errno))
             return False
         except ValueError as error:
             logger.warning("Invalid syntax in file %s: %s", path, error)

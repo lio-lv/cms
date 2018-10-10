@@ -23,7 +23,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import logging
 import os
 import os.path
@@ -59,6 +58,11 @@ yaml.SafeLoader.add_constructor("tag:yaml.org,2002:str", construct_yaml_str)
 
 def getmtime(fname):
     return os.stat(fname).st_mtime
+
+
+def load_yaml_from_path(path):
+    with open(path, "rt", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 
 def load(src, dst, src_name, dst_name=None, conv=lambda i: i):
@@ -147,9 +151,7 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
             logger.critical("File missing: \"contest.yaml\"")
             return None
 
-        conf = yaml.safe_load(
-            io.open(os.path.join(self.path, "contest.yaml"),
-                    "rt", encoding="utf-8"))
+        conf = load_yaml_from_path(os.path.join(self.path, "contest.yaml"))
 
         # Here we update the time of the last import
         touch(os.path.join(self.path, ".itime_contest"))
@@ -236,9 +238,8 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
         username = os.path.basename(self.path)
         logger.info("Loading parameters for user %s.", username)
 
-        conf = yaml.safe_load(
-            io.open(os.path.join(os.path.dirname(self.path), "contest.yaml"),
-                    "rt", encoding="utf-8"))
+        conf = load_yaml_from_path(
+            os.path.join(os.path.dirname(self.path), "contest.yaml"))
 
         args = {}
 
@@ -278,9 +279,8 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
         team_code = os.path.basename(self.path)
         logger.info("Loading parameters for team %s.", team_code)
 
-        conf = yaml.safe_load(
-            io.open(os.path.join(os.path.dirname(self.path), "contest.yaml"),
-                    "rt", encoding="utf-8"))
+        conf = load_yaml_from_path(
+            os.path.join(os.path.dirname(self.path), "contest.yaml"))
 
         args = {}
 
@@ -313,20 +313,17 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
         # We first look for the yaml file inside the task folder,
         # and eventually fallback to a yaml file in its parent folder.
         try:
-            conf = yaml.safe_load(
-                io.open(os.path.join(self.path, "task.yaml"),
-                        "rt", encoding="utf-8"))
-        except IOError as err:
+            conf = load_yaml_from_path(os.path.join(self.path, "task.yaml"))
+        except OSError as err:
             try:
                 deprecated_path = os.path.join(self.path, "..", name + ".yaml")
-                conf = yaml.safe_load(io.open(deprecated_path, "rt",
-                                              encoding="utf-8"))
+                conf = load_yaml_from_path(deprecated_path)
 
                 logger.warning("You're using a deprecated location for the "
                                "task.yaml file. You're advised to move %s to "
                                "%s.", deprecated_path,
                                os.path.join(self.path, "task.yaml"))
-            except IOError:
+            except OSError:
                 # Since both task.yaml and the (deprecated) "../taskname.yaml"
                 # are missing, we will only warn the user that task.yaml is
                 # missing (to avoid encouraging the use of the deprecated one)
@@ -512,7 +509,7 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
         # Detect subtasks by checking GEN
         gen_filename = os.path.join(self.path, 'gen', 'GEN')
         try:
-            with io.open(gen_filename, "rt", encoding="utf-8") as gen_file:
+            with open(gen_filename, "rt", encoding="utf-8") as gen_file:
                 subtasks = []
                 testcases = 0
                 points = None
@@ -579,7 +576,7 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
                     assert int(conf['n_input']) == n_input
 
         # If gen/GEN doesn't exist, just fallback to Sum
-        except IOError:
+        except OSError:
             args["score_type"] = "Sum"
             total_value = float(conf.get("total_value", 100.0))
             input_value = 0.0
@@ -747,13 +744,10 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
         # We first look for the yaml file inside the task folder,
         # and eventually fallback to a yaml file in its parent folder.
         try:
-            conf = yaml.safe_load(
-                io.open(os.path.join(self.path, "task.yaml"),
-                        "rt", encoding="utf-8"))
-        except IOError:
-            conf = yaml.safe_load(
-                io.open(os.path.join(self.path, "..", name + ".yaml"),
-                        "rt", encoding="utf-8"))
+            conf = load_yaml_from_path(os.path.join(self.path, "task.yaml"))
+        except OSError:
+            conf = load_yaml_from_path(
+                os.path.join(self.path, "..", name + ".yaml"))
 
         # If there is no .itime file, we assume that the task has changed
         if not os.path.exists(os.path.join(self.path, ".itime")):
