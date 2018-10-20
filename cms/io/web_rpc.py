@@ -20,10 +20,10 @@
 import json
 import logging
 
-from werkzeug.wrappers import Request, Response
-from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, BadRequest, Forbidden, \
     NotFound, NotAcceptable, UnsupportedMediaType, ServiceUnavailable
+from werkzeug.routing import Map, Rule
+from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import responder
 
 from cms import ServiceCoord
@@ -32,7 +32,7 @@ from cms import ServiceCoord
 logger = logging.getLogger(__name__)
 
 
-class RPCMiddleware(object):
+class RPCMiddleware:
     """An HTTP interface to the internal RPC communications.
 
     This WSGI application provides a synchronous and unfiltered access,

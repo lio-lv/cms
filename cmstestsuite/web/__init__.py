@@ -25,6 +25,7 @@ import datetime
 import sys
 import time
 import traceback
+from abc import ABCMeta, abstractmethod
 
 import requests
 
@@ -32,7 +33,7 @@ import requests
 debug = False
 
 
-class Browser(object):
+class Browser:
     def __init__(self):
         self.xsrf_token = None
         self.session = requests.Session()
@@ -80,7 +81,7 @@ class Browser(object):
         return response
 
 
-class GenericRequest(object):
+class GenericRequest(metaclass=ABCMeta):
     """Request to a server.
 
     """
@@ -217,9 +218,9 @@ class GenericRequest(object):
             res += "\nNO RESPONSE INFORMATION AVAILABLE\n"
         return res
 
+    @abstractmethod
     def describe(self):
-        raise NotImplementedError("Please subclass this class "
-                                  "and actually implement some request")
+        pass
 
     def store_to_file(self, fd):
         print("Test type: %s" % (self.__class__.__name__), file=fd)

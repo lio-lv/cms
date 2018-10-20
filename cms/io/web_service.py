@@ -21,18 +21,15 @@
 
 import logging
 
-import tornado.web
 import tornado.escape
+import tornado.web
 import tornado.wsgi
-
 from gevent.pywsgi import WSGIServer
-
-from werkzeug.wsgi import DispatcherMiddleware, SharedDataMiddleware
 from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.wsgi import DispatcherMiddleware, SharedDataMiddleware
 
 from cms.db.filecacher import FileCacher
 from cms.server.file_middleware import FileServerMiddleware
-
 from .service import Service
 from .web_rpc import RPCMiddleware
 
@@ -50,7 +47,7 @@ class WebService(Service):
 
     def __init__(self, listen_port, handlers, parameters, shard=0,
                  listen_address=""):
-        super(WebService, self).__init__(shard)
+        super().__init__(shard)
 
         static_files = parameters.pop('static_files', [])
         rpc_enabled = parameters.pop('rpc_enabled', False)

@@ -27,13 +27,12 @@ interact with SQLAlchemy objects.
 """
 
 import logging
-import psycopg2
 
-from sqlalchemy.orm import sessionmaker, scoped_session
+import psycopg2
 from sqlalchemy.engine.url import make_url
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from cms import config
-
 from . import engine
 
 
@@ -47,7 +46,7 @@ ScopedSession = scoped_session(Session)
 # Session = sessionmaker(db, twophase=True)
 
 
-class SessionGen(object):
+class SessionGen:
     """This allows us to create handy local sessions simply with:
 
     with SessionGen() as session:

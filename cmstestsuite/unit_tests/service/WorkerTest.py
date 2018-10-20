@@ -26,14 +26,13 @@ from unittest.mock import Mock, call
 
 import gevent
 
-from cmstestsuite.unit_tests.testidgenerator import \
-    unique_long_id, unique_unicode_id
-
 import cms.service.Worker
 from cms.grading import JobException
 from cms.grading.Job import JobGroup, EvaluationJob
 from cms.service.Worker import Worker
 from cms.service.esoperations import ESOperation
+from cmstestsuite.unit_tests.testidgenerator import \
+    unique_long_id, unique_unicode_id
 
 
 class TestWorker(unittest.TestCase):
@@ -284,7 +283,7 @@ class TestWorker(unittest.TestCase):
         return job_groups, calls
 
 
-class FakeTaskType(object):
+class FakeTaskType:
     def __init__(self, execute_results):
         self.execute_results = execute_results
         self.index = 0

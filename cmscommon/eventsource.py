@@ -22,11 +22,10 @@ from collections import deque
 from weakref import WeakSet
 
 from gevent import Timeout
-from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIHandler
-
-from werkzeug.wrappers import Request
+from gevent.queue import Queue, Empty
 from werkzeug.exceptions import NotAcceptable
+from werkzeug.wrappers import Request
 
 
 __all__ = [
@@ -76,7 +75,7 @@ def format_event(id_, event, data):
     return b'\n'.join(result)
 
 
-class Publisher(object):
+class Publisher:
     """The publish part of a pub-sub broadcast system.
 
     Publish-subscribe is actually an improper name, as there's just one
@@ -110,7 +109,7 @@ class Publisher(object):
 
         """
         # Number of microseconds since epoch.
-        key = int(time.time() * 1000000)
+        key = int(time.time() * 1_000_000)
         msg = format_event("%x" % key, event, data)
         # Put into cache.
         self._cache.append((key, msg))
@@ -151,7 +150,7 @@ class Publisher(object):
         return Subscriber(queue)
 
 
-class Subscriber(object):
+class Subscriber:
     """The subscribe part of a pub-sub broadcast system.
 
     This class receives the messages sent to the Publisher that created
@@ -193,7 +192,7 @@ class Subscriber(object):
             pass
 
 
-class EventSource(object):
+class EventSource:
     """A class that implements a Server-Sent Events [1] handler.
 
     This class is intended to be extended: it takes charge of all the

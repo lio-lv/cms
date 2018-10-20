@@ -27,11 +27,9 @@
 
 import logging
 import random
-
 from datetime import timedelta
 
 import gevent.lock
-
 from gevent.event import Event
 
 from cms.db import SessionGen
@@ -42,7 +40,7 @@ from cmscommon.datetime import make_datetime, make_timestamp
 logger = logging.getLogger(__name__)
 
 
-class WorkerPool(object):
+class WorkerPool:
     """This class keeps the state of the workers attached to ES, and
     allow the ES to get a usable worker when it needs it.
 

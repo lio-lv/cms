@@ -21,7 +21,6 @@
 import unittest
 
 from cms.grading.scoretypes.GroupMin import GroupMin
-
 from cmstestsuite.unit_tests.grading.scoretypes.scoretypetestutils \
     import ScoreTypeTestMixin
 
@@ -30,7 +29,7 @@ class TestGroupMin(ScoreTypeTestMixin, unittest.TestCase):
     """Test the GroupMin score type."""
 
     def setUp(self):
-        super(TestGroupMin, self).setUp()
+        super().setUp()
         self._public_testcases = {
             "1_0": True,
             "1_1": True,

@@ -21,7 +21,6 @@
 import unittest
 
 from cms.grading.scoretypes.Sum import Sum
-
 from cmstestsuite.unit_tests.grading.scoretypes.scoretypetestutils \
     import ScoreTypeTestMixin
 
@@ -30,7 +29,7 @@ class TestSum(ScoreTypeTestMixin, unittest.TestCase):
     """Test the Sum score type."""
 
     def setUp(self):
-        super(TestSum, self).setUp()
+        super().setUp()
         self._public_testcases = {
             "0": False,
             "1": True,

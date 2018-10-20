@@ -24,20 +24,18 @@ import unittest
 
 # Needs to be first to allow for monkey patching the DB connection string.
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
-from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 
 from cms.db import Contest, Executable, Participation, Statement, Submission, \
     SubmissionResult, Task, User, version
-
 from cmscommon.digest import bytes_digest
-
 from cmscontrib.DumpExporter import DumpExporter
+from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 
 
 class TestDumpExporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestDumpExporter, self).setUp()
+        super().setUp()
 
         self.target = self.get_path("target")
         self.dump = None
@@ -84,7 +82,7 @@ class TestDumpExporter(DatabaseMixin, FileSystemMixin, unittest.TestCase):
 
     def tearDown(self):
         self.delete_data()
-        super(TestDumpExporter, self).tearDown()
+        super().tearDown()
 
     def do_export(self, contest_ids, dump_files=True, skip_generated=False,
                   skip_submissions=False):

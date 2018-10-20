@@ -32,11 +32,11 @@ from io import BytesIO
 # Needs to be first to allow for monkey patching the DB connection string.
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
-from cmscommon.digest import Digester, bytes_digest
 from cms.db.filecacher import FileCacher
+from cmscommon.digest import Digester, bytes_digest
 
 
-class RandomFile(object):
+class RandomFile:
     """Simulate a random file with dim bytes, calculating its
     SHA1 hash.
 
@@ -79,7 +79,7 @@ class RandomFile(object):
         return self.digester.digest()
 
 
-class HashingFile(object):
+class HashingFile:
     """Hashes the content written to this files.
 
     """
@@ -114,7 +114,7 @@ class HashingFile(object):
         pass
 
 
-class TestFileCacherBase(object):
+class TestFileCacherBase:
     """Base class for performing tests for the FileCacher service.
 
     """
@@ -292,7 +292,7 @@ class TestFileCacherBase(object):
         Then get it back.
 
         """
-        rand_file = RandomFile(10000000)
+        rand_file = RandomFile(10_000_000)
         try:
             data = self.file_cacher.put_file_from_fobj(rand_file, "Test #007")
         except Exception as error:
@@ -361,7 +361,7 @@ class TestFileCacherDB(TestFileCacherBase, DatabaseMixin, unittest.TestCase):
     """Tests for the FileCacher service with a database backend."""
 
     def setUp(self):
-        super(TestFileCacherDB, self).setUp()
+        super().setUp()
         file_cacher = FileCacher()
         self._setUp(file_cacher)
 
@@ -373,7 +373,7 @@ class TestFileCacherFS(TestFileCacherBase, unittest.TestCase):
     """Tests for the FileCacher service with a filesystem backend."""
 
     def setUp(self):
-        super(TestFileCacherFS, self).setUp()
+        super().setUp()
         file_cacher = FileCacher(path="fs-storage")
         self._setUp(file_cacher)
 

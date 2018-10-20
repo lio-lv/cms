@@ -39,6 +39,7 @@ from datetime import timedelta
 
 import cms
 
+
 # Monkeypatch the db string.
 # Noqa to avoid complaints due to imports after a statement.
 cms.config.database += "fortesting"  # noqa
@@ -53,7 +54,7 @@ from cmstestsuite.unit_tests.testidgenerator import unique_long_id, \
     unique_unicode_id, unique_digest
 
 
-class DatabaseObjectGeneratorMixin(object):
+class DatabaseObjectGeneratorMixin:
     """Mixin to create database objects without a session.
 
     This is to be preferred to DatabaseMixin when a session is not required, in
@@ -259,7 +260,7 @@ class DatabaseMixin(DatabaseObjectGeneratorMixin):
 
     @classmethod
     def setUpClass(cls):
-        super(DatabaseMixin, cls).setUpClass()
+        super().setUpClass()
         assert "fortesting" in str(engine), \
             "Monkey patching of DB connection string failed"
         drop_db()
@@ -268,15 +269,15 @@ class DatabaseMixin(DatabaseObjectGeneratorMixin):
     @classmethod
     def tearDownClass(cls):
         drop_db()
-        super(DatabaseMixin, cls).tearDownClass()
+        super().tearDownClass()
 
     def setUp(self):
-        super(DatabaseMixin, self).setUp()
+        super().setUp()
         self.session = Session()
 
     def tearDown(self):
         self.session.rollback()
-        super(DatabaseMixin, self).tearDown()
+        super().tearDown()
 
     def delete_data(self):
         """Delete all the data in the DB.

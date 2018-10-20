@@ -35,7 +35,8 @@ from sqlalchemy.orm import joinedload
 from cms.db import Contest, SubmissionResult
 from cms.grading.scoring import task_score, ScoredSubmission
 from cms.grading.scoretypes import ScoreTypeGroup
-
+from cms.db import Contest
+from cms.grading.scoring import task_score
 from .base import BaseHandler, require_permission
 
 

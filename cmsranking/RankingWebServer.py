@@ -29,28 +29,26 @@ from datetime import datetime
 
 import gevent
 from gevent.pywsgi import WSGIServer
-
-from werkzeug.wrappers import Request, Response
-from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, BadRequest, Unauthorized, \
     Forbidden, NotFound, NotAcceptable, UnsupportedMediaType
+from werkzeug.routing import Map, Rule
+from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import responder, wrap_file, SharedDataMiddleware, \
     DispatcherMiddleware
 
 # Needed for initialization. Do not remove.
-import cmsranking.Logger
-
+import cmsranking.Logger  # noqa
 from cmscommon.eventsource import EventSource
 from cmsranking.Config import Config
-from cmsranking.Entity import InvalidData
 from cmsranking.Contest import Contest
+from cmsranking.Entity import InvalidData
+from cmsranking.Scoring import ScoringStore
+from cmsranking.Store import Store
+from cmsranking.Subchange import Subchange
+from cmsranking.Submission import Submission
 from cmsranking.Task import Task
 from cmsranking.Team import Team
 from cmsranking.User import User
-from cmsranking.Submission import Submission
-from cmsranking.Subchange import Subchange
-from cmsranking.Scoring import ScoringStore
-from cmsranking.Store import Store
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +68,7 @@ class CustomUnauthorized(Unauthorized):
         return response
 
 
-class StoreHandler(object):
+class StoreHandler:
 
     def __init__(self, store, username, password, realm_name):
         self.store = store
@@ -174,8 +172,8 @@ class StoreHandler(object):
                 self.store.create(key, data)
             else:
                 self.store.update(key, data)
-        except InvalidData:
-            logger.warning("Invalid data.", exc_info=True,
+        except InvalidData as err:
+            logger.warning("Invalid data: %s" % str(err), exc_info=False,
                            extra={'location': request.url,
                                   'details': pprint.pformat(data)})
             raise BadRequest()
@@ -203,8 +201,8 @@ class StoreHandler(object):
 
         try:
             self.store.merge_list(data)
-        except InvalidData:
-            logger.warning("Invalid data.", exc_info=True,
+        except InvalidData as err:
+            logger.warning("Invalid data: %s" % str(err), exc_info=False,
                            extra={'location': request.url,
                                   'details': pprint.pformat(data)})
             raise BadRequest()
@@ -284,7 +282,7 @@ class DataWatcher(EventSource):
         self.send("score", "%s %s %0.2f" % (user, task, score))
 
 
-class SubListHandler(object):
+class SubListHandler:
 
     def __init__(self, stores):
         self.task_store = stores["task"]
@@ -330,7 +328,7 @@ class SubListHandler(object):
         return response(environ, start_response)
 
 
-class HistoryHandler(object):
+class HistoryHandler:
 
     def __init__(self, stores):
         self.scoring_store = stores["scoring"]
@@ -355,7 +353,7 @@ class HistoryHandler(object):
         return response(environ, start_response)
 
 
-class ScoreHandler(object):
+class ScoreHandler:
 
     def __init__(self, stores):
         self.scoring_store = stores["scoring"]
@@ -385,7 +383,7 @@ class ScoreHandler(object):
         return response(environ, start_response)
 
 
-class ImageHandler(object):
+class ImageHandler:
     EXT_TO_MIME = {
         'png': 'image/png',
         'jpg': 'image/jpeg',
@@ -446,7 +444,7 @@ class ImageHandler(object):
         return response
 
 
-class RootHandler(object):
+class RootHandler:
 
     def __init__(self, location):
         self.path = os.path.join(location, "Ranking.html")
@@ -472,7 +470,7 @@ class RootHandler(object):
         return response
 
 
-class RoutingHandler(object):
+class RoutingHandler:
 
     def __init__(self, root_handler, event_handler, logo_handler,
                  score_handler, history_handler):

@@ -39,7 +39,6 @@ from cms.db import Contest, Message, Participation, Submission, User, Team
 from cmscommon.datetime import make_datetime
 from cmscontrib.loaders.simple_csv import CsvUserLoader
 import cmscommon.crypto
-
 from .base import BaseHandler, require_permission
 
 

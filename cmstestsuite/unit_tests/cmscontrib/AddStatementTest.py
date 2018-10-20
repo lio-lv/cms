@@ -22,13 +22,11 @@ import unittest
 
 # Needs to be first to allow for monkey patching the DB connection string.
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
-from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 
 from cms.db import Statement
-
 from cmscommon.digest import bytes_digest
-
 from cmscontrib.AddStatement import add_statement
+from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 
 
 _CONTENT_1 = b"this is a pdf"
@@ -40,14 +38,14 @@ _DIGEST_2 = bytes_digest(_CONTENT_2)
 class TestAddStatement(DatabaseMixin, FileSystemMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestAddStatement, self).setUp()
+        super().setUp()
 
         self.task = self.add_task()
         self.session.commit()
 
     def tearDown(self):
         self.delete_data()
-        super(TestAddStatement, self).tearDown()
+        super().tearDown()
 
     def assertStatementInDb(self, language, digest):
         """Assert that the statement with the given data is in the DB."""

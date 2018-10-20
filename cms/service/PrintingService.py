@@ -27,13 +27,13 @@ import os
 import subprocess
 import tempfile
 
-from jinja2 import PackageLoader
 from PyPDF2 import PdfFileReader, PdfFileMerger
+from jinja2 import PackageLoader
 
 from cms import config, rmtree
+from cms.db import SessionGen, PrintJob
 from cms.db.filecacher import FileCacher
 from cms.io import Executor, QueueItem, TriggeredService, rpc_method
-from cms.db import SessionGen, PrintJob
 from cms.server.jinja2_toolbox import GLOBAL_ENVIRONMENT
 from cmscommon.commands import pretty_print_cmdline
 from cmscommon.datetime import get_timezone, utc
@@ -61,7 +61,7 @@ class PrintingOperation(QueueItem):
 
 class PrintingExecutor(Executor):
     def __init__(self, file_cacher):
-        super(PrintingExecutor, self).__init__()
+        super().__init__()
 
         self.file_cacher = file_cacher
         self.jinja2_env = GLOBAL_ENVIRONMENT.overlay(
@@ -222,7 +222,7 @@ class PrintingService(TriggeredService):
         """Initialize the PrintingService.
 
         """
-        super(PrintingService, self).__init__(shard)
+        super().__init__(shard)
 
         self.file_cacher = FileCacher(self)
 

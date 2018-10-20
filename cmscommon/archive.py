@@ -24,8 +24,8 @@
 import os
 import shutil
 import tempfile
-import patoolib
 
+import patoolib
 from patoolib.util import PatoolError
 
 from cms import config
@@ -39,7 +39,7 @@ class ArchiveException(Exception):
     pass
 
 
-class Archive(object):
+class Archive:
     """Class to manage archives.
 
     This class has static methods to test, extract, and create

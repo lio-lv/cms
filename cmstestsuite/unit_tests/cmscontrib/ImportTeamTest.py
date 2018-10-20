@@ -24,9 +24,8 @@ import unittest
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
 from cms.db import SessionGen, Team
-
-from cmscontrib.loaders.base_loader import TeamLoader
 from cmscontrib.ImportTeam import TeamImporter
+from cmscontrib.loaders.base_loader import TeamLoader
 
 
 def fake_loader_factory(team):
@@ -48,7 +47,7 @@ def fake_loader_factory(team):
 class TestImportTeam(DatabaseMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestImportTeam, self).setUp()
+        super().setUp()
 
         # DB already contains a team.
         self.team = self.add_team()
@@ -59,7 +58,7 @@ class TestImportTeam(DatabaseMixin, unittest.TestCase):
 
     def tearDown(self):
         self.delete_data()
-        super(TestImportTeam, self).tearDown()
+        super().tearDown()
 
     @staticmethod
     def do_import(team):

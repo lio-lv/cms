@@ -30,6 +30,7 @@ from cmstestsuite.unit_tests.grading.tasktypes.tasktypetestutils import \
     LANG_1, LANG_2, OUTCOME, STATS_OK, STATS_RE, TEXT, \
     TaskTypeTestMixin, fake_compilation_commands, fake_evaluation_commands
 
+
 FILE_FOO_L1 = File(digest="digest of foo.l1", filename="foo.%l")
 FILE_BAR_L1 = File(digest="digest of bar.l1", filename="bar.%l")
 GRADER_L1 = Manager(digest="digest of grader.l1", filename="grader.l1")
@@ -42,7 +43,7 @@ class TestGetCompilationCommands(TaskTypeTestMixin, unittest.TestCase):
     """Tests for get_compilation_commands()."""
 
     def setUp(self):
-        super(TestGetCompilationCommands, self).setUp()
+        super().setUp()
         self.setUpMocks("Batch")
         self.languages.update({LANG_1, LANG_2})
 
@@ -103,7 +104,7 @@ class TestCompile(TaskTypeTestMixin, unittest.TestCase):
     """
 
     def setUp(self):
-        super(TestCompile, self).setUp()
+        super().setUp()
         self.setUpMocks("Batch")
         self.languages.update({LANG_1})
         self.file_cacher = MagicMock()
@@ -286,7 +287,7 @@ class TestEvaluate(TaskTypeTestMixin, unittest.TestCase):
     """
 
     def setUp(self):
-        super(TestEvaluate, self).setUp()
+        super().setUp()
         self.setUpMocks("Batch")
         self.languages.update({LANG_1})
         self.file_cacher = MagicMock()

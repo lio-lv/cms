@@ -29,7 +29,7 @@ from cms.grading.steps import merge_execution_stats
 from cms.grading.tasktypes.Communication import Communication
 from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 from cmstestsuite.unit_tests.grading.tasktypes.tasktypetestutils import \
-    COMPILATION_COMMAND_1, COMPILATION_COMMAND_2, LANG_1, LANG_2, OUTCOME,\
+    COMPILATION_COMMAND_1, COMPILATION_COMMAND_2, LANG_1, LANG_2, OUTCOME, \
     STATS_OK, STATS_RE, TEXT, TaskTypeTestMixin, fake_compilation_commands
 
 
@@ -44,7 +44,7 @@ class TestGetCompilationCommands(TaskTypeTestMixin, unittest.TestCase):
     """Tests for get_compilation_commands()."""
 
     def setUp(self):
-        super(TestGetCompilationCommands, self).setUp()
+        super().setUp()
         self.setUpMocks("Communication")
         self.languages.update({LANG_1, LANG_2})
 
@@ -123,7 +123,7 @@ class TestCompile(TaskTypeTestMixin, unittest.TestCase):
     """
 
     def setUp(self):
-        super(TestCompile, self).setUp()
+        super().setUp()
         self.setUpMocks("Communication")
         self.languages.update({LANG_1})
         self.file_cacher = MagicMock()
@@ -298,7 +298,7 @@ class TestEvaluate(TaskTypeTestMixin, FileSystemMixin, unittest.TestCase):
     """
 
     def setUp(self):
-        super(TestEvaluate, self).setUp()
+        super().setUp()
         self.setUpMocks("Communication")
         self.languages.update({LANG_1})
         self.file_cacher = MagicMock()
@@ -350,7 +350,7 @@ class TestEvaluate(TaskTypeTestMixin, FileSystemMixin, unittest.TestCase):
             lambda sandbox, *args, **kwargs: sandbox_to_return_value[sandbox]
 
     @patch.object(config, "trusted_sandbox_max_time_s", 4321)
-    @patch.object(config, "trusted_sandbox_max_memory_kib", 1024 * 1234)
+    @patch.object(config, "trusted_sandbox_max_memory_kib", 1234 * 1024)
     def test_single_process_success(self):
         tt, job = self.prepare(
             [1, "stub", "fifo_io"],
@@ -594,7 +594,7 @@ class TestEvaluate(TaskTypeTestMixin, FileSystemMixin, unittest.TestCase):
                  multiprocess=ANY)])
 
     @patch.object(config, "trusted_sandbox_max_time_s", 4321)
-    @patch.object(config, "trusted_sandbox_max_memory_kib", 1024 * 1234)
+    @patch.object(config, "trusted_sandbox_max_memory_kib", 1234 * 1024)
     def test_many_processes_success(self):
         tt, job = self.prepare(
             [2, "stub", "fifo_io"],

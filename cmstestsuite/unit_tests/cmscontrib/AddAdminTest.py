@@ -24,9 +24,7 @@ import unittest
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
 from cms.db import Admin
-
 from cmscommon.crypto import validate_password
-
 from cmscontrib.AddAdmin import add_admin
 
 
@@ -34,7 +32,7 @@ class TestAddAdmin(DatabaseMixin, unittest.TestCase):
 
     def tearDown(self):
         self.delete_data()
-        super(TestAddAdmin, self).tearDown()
+        super().tearDown()
 
     def assertAdminInDb(self, username, pwd, name, enabled, permission_all):
         """Assert that the admin with the given data is in the DB."""

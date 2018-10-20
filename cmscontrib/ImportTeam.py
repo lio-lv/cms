@@ -38,7 +38,6 @@ import sys
 from cms import utf8_decoder
 from cms.db import SessionGen, Team
 from cms.db.filecacher import FileCacher
-
 from cmscontrib.importing import ImportDataError
 from cmscontrib.loaders import choose_loader, build_epilog
 
@@ -46,7 +45,7 @@ from cmscontrib.loaders import choose_loader, build_epilog
 logger = logging.getLogger(__name__)
 
 
-class TeamImporter(object):
+class TeamImporter:
     """Script to create a team in the database."""
 
     def __init__(self, path, loader_class):

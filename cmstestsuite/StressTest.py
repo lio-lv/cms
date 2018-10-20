@@ -24,16 +24,15 @@
 import argparse
 import ast
 import os
+import random
 import sys
 import threading
-import random
 import time
 
+import cmstestsuite.web
 from cms import config, ServiceCoord, get_service_address, utf8_decoder
 from cms.db import Contest, SessionGen
 from cmscommon.crypto import parse_authentication
-
-import cmstestsuite.web
 from cmstestsuite.web import Browser
 from cmstestsuite.web.CWSRequests import HomepageRequest, CWSLoginRequest, \
     TaskRequest, TaskStatementRequest, SubmitRandomRequest
@@ -42,7 +41,7 @@ from cmstestsuite.web.CWSRequests import HomepageRequest, CWSLoginRequest, \
 cmstestsuite.web.debug = True
 
 
-class RequestLog(object):
+class RequestLog:
 
     def __init__(self, log_dir=None):
         self.total = 0

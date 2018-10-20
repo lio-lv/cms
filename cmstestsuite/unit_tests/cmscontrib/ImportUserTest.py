@@ -24,9 +24,8 @@ import unittest
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
 from cms.db import Participation, SessionGen, User
-
-from cmscontrib.loaders.base_loader import UserLoader
 from cmscontrib.ImportUser import UserImporter
+from cmscontrib.loaders.base_loader import UserLoader
 
 
 def fake_loader_factory(user):
@@ -48,7 +47,7 @@ def fake_loader_factory(user):
 class TestImportUser(DatabaseMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestImportUser, self).setUp()
+        super().setUp()
 
         # DB already contains a user participating in a contest.
         self.contest = self.add_contest()
@@ -63,7 +62,7 @@ class TestImportUser(DatabaseMixin, unittest.TestCase):
 
     def tearDown(self):
         self.delete_data()
-        super(TestImportUser, self).tearDown()
+        super().tearDown()
 
     @staticmethod
     def do_import(user, contest_id):

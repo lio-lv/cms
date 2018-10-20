@@ -39,9 +39,9 @@ import requests.exceptions
 from sqlalchemy import not_
 
 from cms import config
-from cms.io import Executor, QueueItem, TriggeredService, rpc_method
 from cms.db import SessionGen, Contest, Participation, Task, Submission, \
     get_submissions
+from cms.io import Executor, QueueItem, TriggeredService, rpc_method
 from cmscommon.datetime import make_timestamp
 
 
@@ -162,7 +162,7 @@ class ProxyExecutor(Executor):
             supposed to listen.
 
         """
-        super(ProxyExecutor, self).__init__(batch_executions=True)
+        super().__init__(batch_executions=True)
 
         self._ranking = ranking
 
@@ -246,7 +246,7 @@ class ProxyService(TriggeredService):
         contest_id (int): the ID of the contest to manage.
 
         """
-        super(ProxyService, self).__init__(shard)
+        super().__init__(shard)
 
         self.contest_id = contest_id
 

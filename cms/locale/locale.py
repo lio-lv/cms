@@ -32,7 +32,6 @@ import copy
 import logging
 import math
 import os
-import pkg_resources
 
 import babel.core
 import babel.dates
@@ -40,6 +39,7 @@ import babel.lists
 import babel.numbers
 import babel.support
 import babel.units
+import pkg_resources
 
 from cms import config
 from cmscommon.datetime import utc
@@ -52,7 +52,7 @@ def N_(msgid):
     return msgid
 
 
-class Translation(object):
+class Translation:
     """A shim that bundles all sources of translations for a language
 
     This class is a thin wrapper that collects all message catalogs and
@@ -130,7 +130,7 @@ class Translation(object):
         else:
             return self.format_datetime(dt, timezone)
 
-    SECONDS_PER_HOUR = 3600
+    SECONDS_PER_HOUR = 60 * 60
     SECONDS_PER_MINUTE = 60
 
     def format_timedelta(self, td):

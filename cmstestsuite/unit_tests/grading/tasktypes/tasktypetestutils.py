@@ -82,7 +82,7 @@ STATS_RE = {
 }
 
 
-class TaskTypeTestMixin(object):
+class TaskTypeTestMixin:
     """A test mixin to make it easier to test task types."""
 
     def setUpMocks(self, tasktype):
@@ -149,7 +149,7 @@ class TaskTypeTestMixin(object):
         return patched
 
     def tearDown(self):
-        super(TaskTypeTestMixin, self).tearDown()
+        super().tearDown()
         # Make sure the test used all declared sandboxes.
         self.assertEqual(len(self.sandboxes), 0)
 

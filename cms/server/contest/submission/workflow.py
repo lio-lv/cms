@@ -32,10 +32,9 @@ import logging
 from cms import config
 from cms.db import Submission, File, UserTestManager, UserTestFile, UserTest
 from cmscommon.datetime import make_timestamp
-
 from .check import check_max_number, check_min_interval
-from .file_retrieval import InvalidArchive, extract_files_from_tornado
 from .file_matching import InvalidFilesOrLanguage, match_files_and_language
+from .file_retrieval import InvalidArchive, extract_files_from_tornado
 from .utils import fetch_file_digests_from_previous_submission, StorageFailed, \
     store_local_copy
 
@@ -50,7 +49,7 @@ def N_(msgid):
 
 class UnacceptableSubmission(Exception):
     def __init__(self, subject, text):
-        super(UnacceptableSubmission, self).__init__("%s: %s" % (subject, text))
+        super().__init__("%s: %s" % (subject, text))
         self.subject = subject
         self.text = text
 
@@ -210,7 +209,7 @@ class TestingNotAllowed(Exception):
 
 class UnacceptableUserTest(Exception):
     def __init__(self, subject, text):
-        super(UnacceptableUserTest, self).__init__("%s: %s" % (subject, text))
+        super().__init__("%s: %s" % (subject, text))
         self.subject = subject
         self.text = text
 

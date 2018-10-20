@@ -20,9 +20,8 @@
 
 import unittest
 
-from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
-
 from cmscommon.digest import Digester, bytes_digest, path_digest
+from cmstestsuite.unit_tests.filesystemmixin import FileSystemMixin
 
 
 _EMPTY_DIGEST = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
@@ -32,7 +31,7 @@ _CONTENT_DIGEST = "040f06fd774092478d450774f5ba30c5da78acc8"
 class TestDigester(unittest.TestCase):
 
     def setUp(self):
-        super(TestDigester, self).setUp()
+        super().setUp()
         self.d = Digester()
 
     def test_success(self):
@@ -65,7 +64,7 @@ class TestBytesDigest(unittest.TestCase):
 class TestPathDigest(FileSystemMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestPathDigest, self).setUp()
+        super().setUp()
         self.filename = "f"
         self.path = self.get_path(self.filename)
 
@@ -78,7 +77,7 @@ class TestPathDigest(FileSystemMixin, unittest.TestCase):
         self.assertEqual(path_digest(self.path), _EMPTY_DIGEST)
 
     def test_long(self):
-        content = b"0" * 1000000
+        content = b"0" * 1_000_000
         self.write_file(self.filename, content)
         self.assertEqual(path_digest(self.path), bytes_digest(content))
 

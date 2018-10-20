@@ -31,7 +31,6 @@ the current ranking.
 """
 
 import logging
-
 from collections import defaultdict
 from datetime import timedelta
 from functools import wraps
@@ -41,12 +40,11 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from cms import ServiceCoord, get_service_shards
-from cms.io import Executor, TriggeredService, rpc_method
 from cms.db import SessionGen, Digest, Dataset, Evaluation, Submission, \
     SubmissionResult, Testcase, UserTest, UserTestResult, get_submissions, \
     get_submission_results, get_datasets_to_judge
 from cms.grading.Job import JobGroup
-
+from cms.io import Executor, TriggeredService, rpc_method
 from .esoperations import ESOperation, get_relevant_operations, \
     get_submissions_operations, get_user_tests_operations, \
     submission_get_operations, submission_to_evaluate, \
@@ -69,7 +67,7 @@ class EvaluationExecutor(Executor):
         The executor just delegates work to the worker pool.
 
         """
-        super(EvaluationExecutor, self).__init__(True)
+        super().__init__(True)
 
         self.evaluation_service = evaluation_service
         self.pool = WorkerPool(self.evaluation_service)
@@ -95,9 +93,9 @@ class EvaluationExecutor(Executor):
             or if it is being executed by a worker.
 
         """
-        return super(EvaluationExecutor, self).__contains__(item) or \
-            item in self._currently_executing or \
-            item in self.pool
+        return (super().__contains__(item)
+                or item in self._currently_executing
+                or item in self.pool)
 
     def max_operations_per_batch(self):
         """Return the maximum number of operations per batch.
@@ -154,7 +152,7 @@ class EvaluationExecutor(Executor):
 
         """
         try:
-            super(EvaluationExecutor, self).dequeue(operation)
+            super().dequeue(operation)
         except KeyError:
             with self._current_execution_lock:
                 for i in range(len(self._currently_executing)):
@@ -178,7 +176,7 @@ def with_post_finish_lock(func):
     return wrapped
 
 
-class Result(object):
+class Result:
     """An object grouping the results obtained from a worker for an
     operation.
 
@@ -215,7 +213,7 @@ class EvaluationService(TriggeredService):
     MAX_FLUSHING_TIME_SECONDS = 2
 
     def __init__(self, shard, contest_id=None):
-        super(EvaluationService, self).__init__(shard)
+        super().__init__(shard)
 
         self.contest_id = contest_id
 
@@ -389,8 +387,7 @@ class EvaluationService(TriggeredService):
             return False
 
         # enqueue() returns the number of successful pushes.
-        return super(EvaluationService, self).enqueue(
-            operation, priority, timestamp) > 0
+        return super().enqueue(operation, priority, timestamp) > 0
 
     @with_post_finish_lock
     def action_finished(self, data, shard, error=None):
@@ -1005,7 +1002,7 @@ class EvaluationService(TriggeredService):
         return ([QueueEntry]): the list with the queued elements.
 
         """
-        entries = super(EvaluationService, self).queue_status()[0]
+        entries = super().queue_status()[0]
         entries_by_key = dict()
         for entry in entries:
             key = (str(entry["item"]["type"]),

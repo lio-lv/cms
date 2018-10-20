@@ -20,8 +20,9 @@ import errno
 import json
 import logging
 import os
-import pkg_resources
 import sys
+
+import pkg_resources
 
 from cmsranking.Logger import add_file_handler
 
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 CMS_RANKING_CONFIG_ENV_VAR = "CMS_RANKING_CONFIG"
 
 
-class Config(object):
+class Config:
     """An object holding the current configuration.
 
     """

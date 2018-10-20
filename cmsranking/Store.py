@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 LOCK = RLock()
 
 
-class Store(object):
+class Store:
     """A store for entities.
 
     Provide methods to perform the CRUD operations (create, retrieve,
@@ -93,7 +93,7 @@ class Store(object):
             logger.error("Invalid JSON", exc_info=False,
                          extra={'location': os.path.join(self._path, name)})
         except InvalidData as exc:
-            logger.error(exc.message, exc_info=False,
+            logger.error(str(exc), exc_info=False,
                          extra={'location': os.path.join(self._path, name)})
 
     def add_create_callback(self, callback):
@@ -231,9 +231,7 @@ class Store(object):
                     item.key = key
                     item_dict[key] = item
                 except InvalidData as exc:
-                    exc.message = "[entity %s] %s" % (key, exc)
-                    exc.args = exc.message,
-                    raise exc
+                    raise InvalidData("[entity %s] %s" % (key, exc))
 
             for key, value in item_dict.items():
                 is_new = key not in self._store

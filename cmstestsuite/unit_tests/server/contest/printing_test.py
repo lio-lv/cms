@@ -25,9 +25,9 @@ from collections import namedtuple
 from unittest.mock import Mock, patch
 
 # Needs to be first to allow for monkey patching the DB connection string.
-from cms import config
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
+from cms import config
 from cms.db import PrintJob
 from cms.server.contest.printing import accept_print_job, \
     UnacceptablePrintJob, PrintingDisabled
@@ -46,7 +46,7 @@ FILE_DIGEST = bytes_digest(FILE_CONTENT)
 class TestAcceptPrintJob(DatabaseMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestAcceptPrintJob, self).setUp()
+        super().setUp()
         self.file_cacher = Mock()
         self.file_cacher.put_file_content.return_value = FILE_DIGEST
         self.timestamp = make_datetime()

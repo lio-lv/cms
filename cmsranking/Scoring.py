@@ -3,6 +3,7 @@
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2018 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2018 William Di Luigi <williamdiluigi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -21,7 +22,6 @@ import heapq
 import logging
 from itertools import zip_longest
 
-
 from cmscommon.constants import \
     SCORE_MODE_MAX, SCORE_MODE_MAX_SUBTASK, SCORE_MODE_MAX_TOKENED_LAST
 
@@ -29,7 +29,7 @@ from cmscommon.constants import \
 logger = logging.getLogger(__name__)
 
 
-class NumberSet(object):
+class NumberSet:
     """A fast data structure on numbers.
 
     It supports:
@@ -59,7 +59,7 @@ class NumberSet(object):
         del self._impl[:]
 
 
-class Score(object):
+class Score:
     """The score of a user for a task.
 
     It computes the current score (and its history) for this
@@ -115,11 +115,11 @@ class Score(object):
             self._last = self._submissions[s_id]
 
         if self._score_mode == SCORE_MODE_MAX:
-            score = max([0.0] +
-                        [submission.score
-                         for submission in self._submissions.values()])
+            score = max((submission.score
+                         for submission in self._submissions.values()),
+                        default=0.0)
         elif self._score_mode == SCORE_MODE_MAX_SUBTASK:
-            scores_by_submission = (s.extra or []
+            scores_by_submission = (map(float, s.extra or [])
                                     for s in self._submissions.values())
             scores_by_subtask = zip_longest(*scores_by_submission,
                                             fillvalue=0.0)
@@ -224,7 +224,7 @@ class Score(object):
         self._score_mode = score_mode
 
 
-class ScoringStore(object):
+class ScoringStore:
     """A manager for all instances of Scoring.
 
     It listens to the events of submission_store and subchange_store and

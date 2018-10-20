@@ -29,14 +29,14 @@ import io
 import logging
 import os
 import tempfile
+from abc import ABCMeta, abstractmethod
 
 import gevent
-
 from sqlalchemy.exc import IntegrityError
 
-from cmscommon.digest import Digester
 from cms import config, mkdir, rmtree
 from cms.db import SessionGen, Digest, FSObject, LargeObject
+from cmscommon.digest import Digester
 
 
 logger = logging.getLogger(__name__)
@@ -80,11 +80,12 @@ class TombstoneError(RuntimeError):
     pass
 
 
-class FileCacherBackend(object):
+class FileCacherBackend(metaclass=ABCMeta):
     """Abstract base class for all FileCacher backends.
 
     """
 
+    @abstractmethod
     def get_file(self, digest):
         """Retrieve a file from the storage.
 
@@ -96,8 +97,9 @@ class FileCacherBackend(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def create_file(self, digest):
         """Create an empty file that will live in the storage.
 
@@ -111,8 +113,9 @@ class FileCacherBackend(object):
             already stored.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def commit_file(self, fobj, digest, desc=""):
         """Commit a file created by create_file() to be stored.
 
@@ -131,8 +134,9 @@ class FileCacherBackend(object):
             purposes!
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def describe(self, digest):
         """Return the description of a file given its digest.
 
@@ -143,8 +147,9 @@ class FileCacherBackend(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def get_size(self, digest):
         """Return the size of a file given its digest.
 
@@ -156,16 +161,18 @@ class FileCacherBackend(object):
         raise (KeyError): if the file cannot be found.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def delete(self, digest):
         """Delete a file from the storage.
 
         digest (unicode): the digest of the file to delete.
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
+    @abstractmethod
     def list(self):
         """List the files available in the storage.
 
@@ -173,7 +180,7 @@ class FileCacherBackend(object):
             representing a file in the form (digest, description).
 
         """
-        raise NotImplementedError("Please subclass this class.")
+        pass
 
 
 class FSBackend(FileCacherBackend):
@@ -457,7 +464,7 @@ class NullBackend(FileCacherBackend):
         return list()
 
 
-class FileCacher(object):
+class FileCacher:
     """This class implement a local cache for files stored as FSObject
     in the database.
 
@@ -475,7 +482,7 @@ class FileCacher(object):
     # - The `io' module defines a DEFAULT_BUFFER_SIZE constant, whose
     #   value is 8192.
     # CHUNK_SIZE should be a multiple of these values.
-    CHUNK_SIZE = 2 ** 14  # 16348
+    CHUNK_SIZE = 16 * 1024  # 16 KiB
 
     def __init__(self, service=None, path=None, null=False):
         """Initialize.

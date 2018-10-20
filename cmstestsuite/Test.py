@@ -19,9 +19,9 @@
 
 import os
 import re
+from abc import ABCMeta, abstractmethod
 
 from cms.grading.languagemanager import get_language
-
 from cmstestsuite.functionaltestframework import FunctionalTestFramework
 
 
@@ -29,9 +29,10 @@ class TestFailure(Exception):
     pass
 
 
-class Check(object):
+class Check(metaclass=ABCMeta):
+    @abstractmethod
     def check(self, *args, **kwargs):
-        raise NotImplementedError
+        pass
 
 
 class CheckOverallScore(Check):
@@ -131,7 +132,7 @@ class CheckNonzeroReturn(CheckAbstractEvaluationFailure):
             "Execution failed because the return code was nonzero")
 
 
-class Test(object):
+class Test:
     def __init__(self, name, task, filenames, languages, checks,
                  user_tests=False):
         self.framework = FunctionalTestFramework()

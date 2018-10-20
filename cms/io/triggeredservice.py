@@ -35,7 +35,7 @@ from cmscommon.datetime import monotonic_time
 logger = logging.getLogger(__name__)
 
 
-class Executor(object, metaclass=ABCMeta):  # pylint: disable=R0921
+class Executor(metaclass=ABCMeta):
 
     """A class taking care of executing operations.
 
@@ -56,7 +56,7 @@ class Executor(object, metaclass=ABCMeta):  # pylint: disable=R0921
             at a time.
 
         """
-        super(Executor, self).__init__()
+        super().__init__()
 
         self._batch_executions = batch_executions
         self._operation_queue = PriorityQueue()

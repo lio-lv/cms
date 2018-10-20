@@ -21,7 +21,6 @@
 import unittest
 
 from cms.grading.scoretypes.GroupMul import GroupMul
-
 from cmstestsuite.unit_tests.grading.scoretypes.scoretypetestutils \
     import ScoreTypeTestMixin
 
@@ -30,7 +29,7 @@ class TestGroupMul(ScoreTypeTestMixin, unittest.TestCase):
     """Test the GroupMul score type."""
 
     def setUp(self):
-        super(TestGroupMul, self).setUp()
+        super().setUp()
         self._public_testcases = {
             "1_0": True,
             "1_1": True,

@@ -24,9 +24,8 @@ import unittest
 from cmstestsuite.unit_tests.databasemixin import DatabaseMixin
 
 from cms.db import SessionGen, Submission, Task
-
-from cmscontrib.loaders.base_loader import TaskLoader
 from cmscontrib.ImportTask import TaskImporter
+from cmscontrib.loaders.base_loader import TaskLoader
 
 
 def fake_loader_factory(task, task_has_changed=False):
@@ -48,7 +47,7 @@ def fake_loader_factory(task, task_has_changed=False):
 class TestImportTask(DatabaseMixin, unittest.TestCase):
 
     def setUp(self):
-        super(TestImportTask, self).setUp()
+        super().setUp()
 
         # DB already contains a task in a contest with a submission.
         self.contest = self.add_contest()
@@ -71,7 +70,7 @@ class TestImportTask(DatabaseMixin, unittest.TestCase):
 
     def tearDown(self):
         self.delete_data()
-        super(TestImportTask, self).tearDown()
+        super().tearDown()
 
     @staticmethod
     def do_import(task, contest_id, update,

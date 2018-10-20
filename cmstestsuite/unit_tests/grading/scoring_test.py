@@ -36,7 +36,7 @@ class TaskScoreMixin(DatabaseMixin):
     """A mixin to test the task_score() function with various score modes."""
 
     def setUp(self):
-        super(TaskScoreMixin, self).setUp()
+        super().setUp()
         self.participation = self.add_participation()
         self.task = self.add_task(contest=self.participation.contest)
         dataset = self.add_dataset(task=self.task)
@@ -76,7 +76,7 @@ class TestTaskScoreMaxTokenedLast(TaskScoreMixin, unittest.TestCase):
     """Tests for task_score() using the max_tokened_last score mode."""
 
     def setUp(self):
-        super(TestTaskScoreMaxTokenedLast, self).setUp()
+        super().setUp()
         self.task.score_mode = SCORE_MODE_MAX_TOKENED_LAST
 
     def test_no_submissions(self):
@@ -165,7 +165,7 @@ class TestTaskScoreMaxSubtask(TaskScoreMixin, unittest.TestCase):
     """Tests for task_score() using the max_subtask score mode."""
 
     def setUp(self):
-        super(TestTaskScoreMaxSubtask, self).setUp()
+        super().setUp()
         self.task.score_mode = SCORE_MODE_MAX_SUBTASK
 
     @staticmethod
@@ -245,18 +245,18 @@ class TestTaskScoreMaxSubtask(TaskScoreMixin, unittest.TestCase):
 
     def test_rounding(self):
         # No rounding should happen at the subtask or task level.
-        self.add_result(self.at(1), 80 + 0.0002,
+        self.add_result(self.at(1), 80 + 0.000_2,
                         score_details=[
                             self.subtask(1, 80, 1.0),
-                            self.subtask(2, 20, 0.00001),
+                            self.subtask(2, 20, 0.000_01),
                         ])
-        self.add_result(self.at(2), 0.0004,
+        self.add_result(self.at(2), 0.000_4,
                         score_details=[
                             self.subtask(1, 80, 0.0),
-                            self.subtask(2, 20, 0.00002),
+                            self.subtask(2, 20, 0.000_02),
                         ])
         self.session.flush()
-        self.assertEqual(self.call(), (80 + 0.0004, False))
+        self.assertEqual(self.call(), (80 + 0.000_4, False))
 
     def test_public(self):
         self.add_result(self.at(1),
@@ -317,7 +317,7 @@ class TestTaskScoreMax(TaskScoreMixin, unittest.TestCase):
     """Tests for task_score() using the max score mode."""
 
     def setUp(self):
-        super(TestTaskScoreMax, self).setUp()
+        super().setUp()
         self.task.score_mode = SCORE_MODE_MAX
 
     def test_no_submissions(self):

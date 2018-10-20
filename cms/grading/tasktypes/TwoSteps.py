@@ -25,12 +25,12 @@ import os
 import tempfile
 
 from cms import config
-from cms.grading.Sandbox import wait_without_std
+from cms.db import Executable
 from cms.grading.ParameterTypes import ParameterTypeChoice
+from cms.grading.Sandbox import wait_without_std
+from cms.grading.languagemanager import LANGUAGES, get_language
 from cms.grading.steps import compilation_step, evaluation_step_before_run, \
     evaluation_step_after_run, human_evaluation_message, merge_execution_stats
-from cms.grading.languagemanager import LANGUAGES, get_language
-from cms.db import Executable
 from . import TaskType, \
     check_executables_number, check_files_number, check_manager_present, \
     create_sandbox, delete_sandbox, eval_output
@@ -92,7 +92,7 @@ class TwoSteps(TaskType):
         return "Two steps"
 
     def __init__(self, parameters):
-        super(TwoSteps, self).__init__(parameters)
+        super().__init__(parameters)
         self.output_eval = self.parameters[0]
 
     def get_compilation_commands(self, submission_format):
