@@ -159,6 +159,14 @@ class BaseHandler(CommonRequestHandler):
 
 
 class ContestListHandler(BaseHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Prevent selection of other translations that may have unknown quality.
+        # Contest list header and footer are also expected to be in Latvian.
+        self.available_translations = \
+            { k: v for k, v in self.available_translations.items() if k == "lv" }
+
+
     def get(self):
         self.r_params = self.render_params()
         # We need this to be computed for each request because we want to be
