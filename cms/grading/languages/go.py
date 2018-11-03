@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
-# Copyright © 2017 Andrey Vihrov <andrey.vihrov@gmail.com>
+# Copyright © 2017-2018 Andrey Vihrov <andrey.vihrov@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -18,10 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Go programming language definition."""
-
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
 
 from cms.grading import CompiledLanguage
 

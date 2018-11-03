@@ -193,6 +193,7 @@ setup(
             "Python 2 / CPython=cms.grading.languages.python2_cpython:Python2CPython",
             "Python 3 / CPython=cms.grading.languages.python3_cpython:Python3CPython",
             "Rust=cms.grading.languages.rust:Rust",
+            "Go=cms.grading.languages.go:Go",
         ],
     },
     keywords="ioi programming contest grader management system",
