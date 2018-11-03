@@ -24,7 +24,7 @@ useful specifically to the use that CWS makes of it.
 """
 
 from datetime import timedelta
-from jinja2 import contextfilter, PackageLoader
+from jinja2 import contextfilter, PackageLoader, FileSystemLoader, ChoiceLoader
 
 from cms.server.jinja2_toolbox import GLOBAL_ENVIRONMENT
 from .formatting import format_token_rules, get_score_class
@@ -65,7 +65,8 @@ def instrument_formatting_toolbox(env):
 CWS_ENVIRONMENT = GLOBAL_ENVIRONMENT.overlay(
     # Load templates from CWS's package (use package rather than file
     # system as that works even in case of a compressed distribution).
-    loader=PackageLoader('cms.server.contest', 'templates'))
+    loader=ChoiceLoader([PackageLoader('cms.server.contest', 'templates'),
+                         FileSystemLoader('/var/local/lib/cms/templates')]))
 
 
 instrument_cms_toolbox(CWS_ENVIRONMENT)

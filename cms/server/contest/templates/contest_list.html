@@ -3,6 +3,7 @@
     {% trans %}Choose a contest{% endtrans %}
 {% endblock title %}
 {% block body %}
+    {% include "contest_list_header.html" ignore missing %}
     <div class="hero-unit contest-list">
         <h3>{% trans %}Choose a contest{% endtrans %}</h3>
         <ul class="nav nav-list">
@@ -17,4 +18,5 @@
     {% endfor %}
         </ul>
     </div>
+    {% include "contest_list_footer.html" ignore missing %}
 {% endblock body %}
