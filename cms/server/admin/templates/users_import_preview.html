@@ -29,7 +29,7 @@
               <td><input name="last_name" value="{{ u.last_name }}"></td>
               <td><input name="email" value="{{ u.email if u.email else '' }}"></td>
               <td>
-                {% if callable(u.password) or not u.password %}
+                {% if u.password is callable or not u.password %}
                   <input type="hidden" name="password" value="">
                   Generated
                 {% else %}
