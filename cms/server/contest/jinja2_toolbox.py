@@ -23,6 +23,7 @@ useful specifically to the use that CWS makes of it.
 
 """
 
+from datetime import timedelta
 from jinja2 import contextfilter, PackageLoader
 
 from cms.server.jinja2_toolbox import GLOBAL_ENVIRONMENT
@@ -34,8 +35,19 @@ def extract_token_params(o):
             for k, v in o.__dict__.items() if k.startswith("token_")}
 
 
+def contest_visible(contest_list_entry, now):
+    """Determine whether to show this contest on the contest list page.
+
+    """
+    (_, c) = contest_list_entry
+    return c.start - timedelta(hours=6) <= now and \
+        now < (c.analysis_stop if c.analysis_enabled else c.stop) + timedelta(days=1)
+
+
 def instrument_cms_toolbox(env):
     env.filters["extract_token_params"] = extract_token_params
+
+    env.tests["contest_visible"] = contest_visible
 
 
 @contextfilter
