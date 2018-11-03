@@ -19,8 +19,7 @@
 """Tests for the Batch task type."""
 
 import unittest
-
-from mock import MagicMock, call, ANY
+from unittest.mock import MagicMock, call, ANY
 
 from cms.db import File, Manager, Executable
 from cms.grading.Job import CompilationJob, EvaluationJob
@@ -298,7 +297,7 @@ class TestEvaluate(TaskTypeTestMixin, unittest.TestCase):
                              input="digest of input",
                              output="digest of correct output",
                              time_limit=2.5,
-                             memory_limit=123,
+                             memory_limit=123 * 1024 * 1024,
                              executables=executables,
                              multithreaded_sandbox=True)
 
@@ -355,7 +354,7 @@ class TestEvaluate(TaskTypeTestMixin, unittest.TestCase):
         self.evaluation_step.assert_called_once_with(
             sandbox,
             fake_evaluation_commands(EVALUATION_COMMAND_1, "foo", "foo"),
-            2.5, 123,
+            2.5, 123 * 1024 * 1024,
             writable_files=[],
             stdin_redirect="input.txt",
             stdout_redirect="output.txt",
@@ -476,7 +475,7 @@ class TestEvaluate(TaskTypeTestMixin, unittest.TestCase):
         self.evaluation_step.assert_called_once_with(
             sandbox,
             fake_evaluation_commands(EVALUATION_COMMAND_1, "foo", "foo"),
-            2.5, 123,
+            2.5, 123 * 1024 * 1024,
             writable_files=["myout"],
             stdin_redirect=None,
             stdout_redirect=None,
