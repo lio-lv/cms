@@ -41,7 +41,7 @@ def contest_visible(contest_list_entry, now):
     """
     (_, c) = contest_list_entry
     return c.start - timedelta(hours=6) <= now and \
-        now < (c.analysis_stop if c.analysis_enabled else c.stop) + timedelta(days=1)
+        now < (c.analysis_stop if c.analysis_enabled else c.stop) + timedelta(hours=6)
 
 
 def instrument_cms_toolbox(env):
