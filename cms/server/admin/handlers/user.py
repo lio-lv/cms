@@ -407,7 +407,7 @@ class ImportUsersHandler(
                     args['password'] = passwords[i]
                 else:
                     args['password'] = crypto.generate_random_password()
-                args['password'] = crypto.hash_password(args['password'])
+                args['password'] = crypto.hash_password(args['password'], method='plaintext')
                 user = User(**args)
                 self.sql_session.add(user)
             if self.try_commit():

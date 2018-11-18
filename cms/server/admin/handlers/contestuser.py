@@ -339,7 +339,7 @@ class ImportParticipantsHandler(BaseHandler):
                                 'User exist', 'Some participants already exist')
                     if load_passwords:
                         result['password'] = \
-                            cmscommon.crypto.hash_password(user.get('password'))
+                            cmscommon.crypto.hash_password(user.get('password'), method='plaintext')
                     else:
                         result['password'] = None
                     processed_users.append(result)
