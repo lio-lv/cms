@@ -237,7 +237,8 @@ class DetailedResultsHandler(BaseHandler):
                             for testcase in group['testcases']:
                                 testcase['text'] = DetailedResultsHandler\
                                         .__get_result(testcase['text'])
-                elif score == 0.0:  # skip tasks with no submissions and score
+                else: # skip tasks with no submissions
+                    assert score == 0.0
                     continue
 
                 task_result = {
