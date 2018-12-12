@@ -107,7 +107,8 @@ class ScoredSubmission:
     def __init__(self):
         self.s = None
 
-def task_score(participation, task, public=False, only_tokened=False, *, submission=None):
+def task_score(participation, task,
+               public=False, only_tokened=False, rounded=False, *, submission=None):
     """Return the score of a contest's user on a task.
 
     participation (Participation): the user and contest for which to
@@ -120,6 +121,7 @@ def task_score(participation, task, public=False, only_tokened=False, *, submiss
         at the results of tokened submissions (that is, the score that the user
         would obtain if all non-tokened submissions scored 0.0, or equivalently
         had not been scored yet).
+    rounded (bool): if True, round the score to the task's score_precision.
     submission (ScoredSubmission): Optional object to save the scored submission.
 
     return ((float, bool)): the score of user on task, and True if not
@@ -170,13 +172,16 @@ def task_score(participation, task, public=False, only_tokened=False, *, submiss
         score_details_tokened.append((score, score_details, s.tokened(), s))
 
     if task.score_mode == SCORE_MODE_MAX:
-        return _task_score_max(score_details_tokened), partial
-    if task.score_mode == SCORE_MODE_MAX_SUBTASK:
-        return _task_score_max_subtask(score_details_tokened), partial
+        score = _task_score_max(score_details_tokened)
+    elif task.score_mode == SCORE_MODE_MAX_SUBTASK:
+        score = _task_score_max_subtask(score_details_tokened)
     elif task.score_mode == SCORE_MODE_MAX_TOKENED_LAST:
-        return _task_score_max_tokened_last(score_details_tokened, submission=submission), partial
+        score = _task_score_max_tokened_last(score_details_tokened, submission=submission)
     else:
         raise ValueError("Unknown score mode '%s'" % task.score_mode)
+    if rounded:
+        score = round(score, task.score_precision)
+    return score, partial
 
 
 def _task_score_max_tokened_last(score_details_tokened, *, submission=None):
