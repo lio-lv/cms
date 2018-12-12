@@ -50,5 +50,8 @@ class Go(CompiledLanguage):
                                  source_filenames, executable_filename,
                                  for_evaluation=True):
         """See Language.get_compilation_commands."""
+        # Compilation may succeed without output file, see go-build(1).
+        # Add a check to ensure that the output executable exists.
         return [["/usr/bin/go", "build", "-o",
-                 executable_filename, source_filenames[0]]]
+                 executable_filename, source_filenames[0]],
+                ["/usr/bin/test", "-x", executable_filename]]
