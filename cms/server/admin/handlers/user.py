@@ -382,14 +382,14 @@ class ImportUsersHandler(
                 if ignored:
                     self.application.service.add_notification(
                         make_datetime(),
-                        "User exist:",
+                        "User exists",
                         '%d users already exist, ignored' % ignored)
                 r_params['users'] = processed_users
                 self.render("users_import_preview.html", **r_params)
                 return
             except Exception as error:
                 self.application.service.add_notification(
-                    make_datetime(), "Bad csv file", repr(error))
+                    make_datetime(), "Bad CSV file", repr(error))
                 self.redirect(fallback_page)
                 return
         elif action == 'save':

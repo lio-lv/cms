@@ -144,12 +144,12 @@ class DetailedResultsHandler(BaseHandler):
         # TODO: use translation files when AWS supports them
         text, = text
         messages = {
-            "Output is correct": u"Pareizi",
-            "Output is partially correct": u"Daļēji pareizi",
-            "Output isn't correct": u"Nepareizi",
-            "Evaluation didn't produce file %s": u"Trūkst izvaddatu",
-            "Execution timed out": u"Laika limits",
-            "Execution timed out (wall clock limit exceeded)": u"Laika limits",
+            "Output is correct": "Pareizi",
+            "Output is partially correct": "Daļēji pareizi",
+            "Output isn't correct": "Nepareizi",
+            "Evaluation didn't produce file %s": "Trūkst izvaddatu",
+            "Execution timed out": "Laika limits",
+            "Execution timed out (wall clock limit exceeded)": "Laika limits",
             "Execution killed with signal %d (could be triggered by "
             "violating memory limits)": "Izpildes kļūda",
             "Execution killed because of forbidden syscall %s":
@@ -210,13 +210,13 @@ class DetailedResultsHandler(BaseHandler):
             task_results = []
             for task in contest.tasks:
                 submission = ScoredSubmission()
-                score, partial = task_score(p, task, submission=submission)
+                score, partial = task_score(p, task, rounded=True,
+                                            submission=submission)
                 if partial:
                     partial_results = True
-                score = round(score, task.score_precision)
                 st = task.active_dataset.score_type_object
                 if not isinstance(st, ScoreTypeGroup):
-                    raise Exception("Unsupported score type for task {0}"
+                    raise Exception("Unsupported score type for task {}"
                                     .format(task.name))
 
                 task_max_score = st.max_score

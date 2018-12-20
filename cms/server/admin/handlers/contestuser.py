@@ -319,7 +319,7 @@ class ImportParticipantsHandler(BaseHandler):
                     if not db_user:
                         self.application.service.add_notification(
                             make_datetime(),
-                            'User missing:',
+                            'User missing',
                             '"%s" doesn\'t exist. Import users first.' %
                             username)
                         self.redirect(fallback_page)
@@ -336,7 +336,7 @@ class ImportParticipantsHandler(BaseHandler):
                             some_participants_exist = True
                             self.application.service.add_notification(
                                 make_datetime(),
-                                'User exist', 'Some participants already exist')
+                                'User exists', 'Some participants already exist')
                     if load_passwords:
                         result['password'] = \
                             cmscommon.crypto.hash_password(user.get('password'), method='plaintext')
@@ -351,7 +351,7 @@ class ImportParticipantsHandler(BaseHandler):
                 return
             except Exception as error:
                 self.application.service.add_notification(
-                    make_datetime(), "Bad csv file", repr(error))
+                    make_datetime(), "Bad CSV file", repr(error))
                 self.redirect(fallback_page)
                 return
         elif action == 'save':
