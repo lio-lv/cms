@@ -52,9 +52,9 @@ def execution_stats(sandbox, collect_output=False):
 
     if collect_output:
         stats["stdout"] = sandbox.get_file_to_string(sandbox.stdout_file)\
-            .decode("utf-8", errors="replace").strip()
+            .decode("utf-8", errors="replace").replace("\x00", "\uFFFD").strip()
         stats["stderr"] = sandbox.get_file_to_string(sandbox.stderr_file)\
-            .decode("utf-8", errors="replace").strip()
+            .decode("utf-8", errors="replace").replace("\x00", "\uFFFD").strip()
 
     return stats
 
