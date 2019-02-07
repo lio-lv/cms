@@ -49,15 +49,15 @@
         </thead>
         <tbody>
       {% for group in task['test_results'] %}
-        {% set first = true %}
+        {% set ns = namespace(first=true) %}
         {% for test in group['testcases'] %}
-          <tr {% if first %} class="first-row" {% endif %}>
+          <tr{% if ns.first %} class="first-row"{% endif %}>
             <td>{{test['idx']}}</td><td>{{test['text']}}</td><td class="number">{{ format_string("%.3f", test['time']) }}</td><td class="number">{{ format_string("%.2f", test['memory'] / 1024**2) }}</td>
-          {% if first %}
+          {% if ns.first %}
             {% set score = group['score_fraction'] * group['max_score'] %}
             <td rowspan="{{group['testcases']|length}}" class="number">{{ format_score(score, group['max_score'], task['task'].score_precision) }}</td>
           {% endif %}
-          {% set first = false %}
+          {% set ns.first = false %}
           </tr>
         {% endfor %}
       {% endfor %}
