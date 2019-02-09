@@ -141,21 +141,18 @@ class DetailedResultsHandler(BaseHandler):
     """
     @staticmethod
     def __get_result(text):
+        # See EVALUATION_MESSAGES in cms/grading/steps/evaluation.py
         # TODO: use translation files when AWS supports them
         text, = text
         messages = {
             "Output is correct": "Pareizi",
             "Output is partially correct": "Daļēji pareizi",
             "Output isn't correct": "Nepareizi",
-            "Evaluation didn't produce file %s": "Trūkst izvaddatu",
+            "Evaluation didn't produce file %s": "Nav izvaddatu",
             "Execution timed out": "Laika limits",
             "Execution timed out (wall clock limit exceeded)": "Laika limits",
-            "Execution killed with signal %d (could be triggered by "
-            "violating memory limits)": "Izpildes kļūda",
-            "Execution killed because of forbidden syscall %s":
-                "Neatļauta darbība",
-            "Execution killed because of forbidden file access":
-                "Neatļauta piekļuve failiem",
+            "Execution killed (could be triggered by violating "
+                "memory limits)": "Izpildes kļūda",
             "Execution failed because the return code was nonzero":
                 "Izpildes kļūda"
          }
