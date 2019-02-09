@@ -329,6 +329,8 @@ class BaseHandler(CommonRequestHandler):
         if self.r_params is None:
             try:
                 self.r_params = self.render_params()
+                if self.r_params["url"] is None:
+                    raise ValueError("url is None")
             except:
                 self.write("A critical error has occurred :-(")
                 self.finish()
