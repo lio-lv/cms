@@ -25,7 +25,10 @@
          value="Add user" />
 </form>
 
+{% if admin.permission_all %}
 <a href="{{ url("contest", contest.id, "users", "import") }}">Import users</a>
+{% endif %}
+
 <form action="{{ url("contest", contest.id, "users") }}" method="POST">
   {{ xsrf_form_html|safe }}
   Edit selected user:
