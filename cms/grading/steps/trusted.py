@@ -97,7 +97,7 @@ def extract_outcome_and_text(sandbox):
 
     with sandbox.get_file_text(sandbox.stderr_file) as stderr_file:
         try:
-            text = _filter_ansi_escape(stderr_file.readline().strip())
+            text = _filter_ansi_escape(stderr_file.readline().replace("\x00", "\uFFFD").strip())
         except UnicodeDecodeError as error:
             logger.error("Manager stderr (text) is not valid UTF-8. %r", error)
             raise ValueError("Cannot decode the text.")
