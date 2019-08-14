@@ -397,11 +397,13 @@ class ImportUsersHandler(
             first_names = self.get_body_arguments('first_name', None)
             last_names = self.get_body_arguments('last_name', None)
             passwords = self.get_body_arguments('password', None)
+            emails = self.get_body_arguments('email', None)
             for i in range(len(usernames)):
                 args = {
                     'username': usernames[i],
                     'first_name': first_names[i],
                     'last_name': last_names[i],
+                    'email': emails[i],
                 }
                 if passwords[i]:
                     args['password'] = passwords[i]
