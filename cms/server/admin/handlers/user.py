@@ -393,11 +393,11 @@ class ImportUsersHandler(
                 self.redirect(fallback_page)
                 return
         elif action == 'save':
-            usernames = self.get_body_arguments('username', None)
-            first_names = self.get_body_arguments('first_name', None)
-            last_names = self.get_body_arguments('last_name', None)
-            passwords = self.get_body_arguments('password', None)
-            emails = self.get_body_arguments('email', None)
+            usernames = self.get_body_arguments('username', False)
+            first_names = self.get_body_arguments('first_name', False)
+            last_names = self.get_body_arguments('last_name', False)
+            passwords = self.get_body_arguments('password', False)
+            emails = self.get_body_arguments('email', False)
             for i in range(len(usernames)):
                 args = {
                     'username': usernames[i],

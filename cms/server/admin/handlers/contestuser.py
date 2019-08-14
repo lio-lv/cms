@@ -355,9 +355,9 @@ class ImportParticipantsHandler(BaseHandler):
                 self.redirect(fallback_page)
                 return
         elif action == 'save':
-            user_id = self.get_body_arguments('user_id', None)
-            teams = self.get_body_arguments('team', None)
-            passwords = self.get_body_arguments('password', None)
+            user_id = self.get_body_arguments('user_id', False)
+            teams = self.get_body_arguments('team', False)
+            passwords = self.get_body_arguments('password', False)
             for i in range(len(user_id)):
                 user = self.safe_get_item(User, user_id[i])
                 team = None
