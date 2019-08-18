@@ -37,7 +37,7 @@
   {% endif %}
     <p>Punkti kopā: {{ format_score(result['total_score'], result['max_score'], contest.score_precision) }}</p>
   {% for task in result['tasks'] %}
-    <h2>{{ task['name'] }}</h2>
+    <h2>{{ task['task'].title }} ({{ task['task'].name }})</h2>
     <p>Punkti par uzdevumu: {{ format_score(task['score'], task['max_score'], task['task'].score_precision) }}</p>
     {% if task['status'] == SubmissionResult.SCORED %}
     <div class="results">

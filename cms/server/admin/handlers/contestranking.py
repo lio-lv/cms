@@ -239,7 +239,6 @@ class DetailedResultsHandler(BaseHandler):
 
                 task_result = {
                     'task': task,
-                    'name': task.name,
                     'score': score,
                     'max_score': task_max_score,
                     'status': status,
