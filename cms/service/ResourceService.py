@@ -35,6 +35,7 @@ from shlex import quote as shell_quote
 
 import psutil
 from gevent import subprocess
+import gevent
 
 from cms import config, get_safe_shard, ServiceCoord
 from cms.io import Service, rpc_method
@@ -440,6 +441,10 @@ class ResourceService(Service):
             logger.error("Unable to decode service shard.")
 
         remote_service = self.connect_to(ServiceCoord(name, shard))
+        i = 3
+        while not remote_service.connected and i > 0:
+            gevent.sleep(0.1)
+            i -= 1
         result = remote_service.quit(reason="Asked by ResourceService")
         return result.get()
 
