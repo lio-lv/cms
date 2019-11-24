@@ -79,6 +79,10 @@ class JavaJDK(Language):
             # executable_filename is a jar file, main is the name of
             # the main java class
             return [["/usr/bin/java", "-Deval=true", "-Xmx512M", "-Xss64M",
+                     # Additional parameters to increase speed and stability. Tuned for Java 8.
+                     # See also: https://wiki.ioinformatics.org/wiki/HostingAnIOI/TechnicalChecklist#Determinism
+                     "-Xbatch", "-XX:+UseSerialGC", "-XX:-TieredCompilation",
+                     "-XX:CICompilerCount=1", "-XX:CompileThreshold=2000", "-XX:-UsePerfData",
                      "-cp", executable_filename, main] + args]
         else:
             unzip_command = ["/usr/bin/unzip", executable_filename]
