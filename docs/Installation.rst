@@ -28,9 +28,9 @@ You will also require a Linux kernel with support for control groups and namespa
 
 Then you require the compilation and execution environments for the languages you will use in your contest:
 
-* `GNU compiler collection <https://gcc.gnu.org/>`_ (for C, C++ and Java, respectively with executables ``gcc``, ``g++`` and ``gcj``);
+* `GNU compiler collection <https://gcc.gnu.org/>`_ (for C and C++, respectively with executables ``gcc`` and ``g++``);
 
-* alternatively, for Java, your choice of a JDK, for example OpenJDK (but any other JDK behaving similarly is fine, for example Oracle's);
+* for Java, your choice of a JDK, for example OpenJDK (but any other JDK behaving similarly is fine, for example Oracle's);
 
 * `Free Pascal <http://www.freepascal.org/>`_ (for Pascal, with executable ``fpc``);
 
@@ -64,8 +64,7 @@ On Ubuntu 18.04, one will need to run the following script to satisfy all depend
 
     # Optional
     sudo apt-get install nginx-full python2.7 php7.2-cli php7.2-fpm \
-        phppgadmin texlive-latex-base a2ps gcj-jdk haskell-platform rustc \
-        mono-mcs
+        phppgadmin texlive-latex-base a2ps haskell-platform rustc mono-mcs
 
 The above commands provide a very essential Pascal environment. Consider installing the following packages for additional units: `fp-units-base`, `fp-units-fcl`, `fp-units-misc`, `fp-units-math` and `fp-units-rtl`.
 
@@ -202,7 +201,7 @@ To install CMS and its Python dependencies on Ubuntu, you can issue:
     sudo python3 setup.py install
 
     sudo apt-get install python3-setuptools python3-tornado python3-psycopg2 \
-         python3-sqlalchemy python3-psutil python3-netifaces python3-crypto \
+         python3-sqlalchemy python3-psutil python3-netifaces python3-pycryptodome \
          python3-bs4 python3-coverage python3-requests python3-werkzeug \
          python3-gevent python3-bcrypt python3-chardet patool python3-babel \
          python3-xdg python3-jinja2
@@ -224,7 +223,7 @@ To install CMS python dependencies on Arch Linux (again: assuming you did not us
     sudo python3 setup.py install
 
     sudo pacman -S --needed python-setuptools python-tornado python-psycopg2 \
-         python-sqlalchemy python-psutil python-netifaces python-crypto \
+         python-sqlalchemy python-psutil python-netifaces python-pycryptodome \
          python-beautifulsoup4 python-coverage python-requests python-werkzeug \
          python-gevent python-bcrypt python-chardet python-babel python-xdg \
          python-jinja
